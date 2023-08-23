@@ -1,0 +1,21 @@
+{
+  "name": "dcpoly",
+  "version": "1.0.0",
+  "description": "A Discord bot to play a very cool game.",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Peter Hawthorne",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^14.12.1",
+    "dotenv": "^16.3.1",
+    "node": "^20.5.0",
+    "tsc": "^2.0.4",
+    "typescript": "^5.1.6"
+  },
+  "devDependencies": {
+    "eslint": "^8.46.0"
+  }
+}
