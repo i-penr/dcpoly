@@ -4,7 +4,9 @@
   "description": "A Discord bot to play a very cool game.",
   "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy-slash-cmds": "tsc && node dist/deployCommands.js",
+    "start": "tsc && node --watch dist"
   },
   "author": "Peter Hawthorne",
   "license": "ISC",
@@ -13,7 +15,7 @@
     "dotenv": "^16.3.1",
     "node": "^20.5.0",
     "tsc": "^2.0.4",
-    "typescript": "^5.1.6"
+    "typescript": "^5.2.2"
   },
   "devDependencies": {
     "eslint": "^8.46.0"
