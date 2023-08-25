@@ -1,4 +1,4 @@
-import { BaseInteraction, Collection, Events, GatewayIntentBits } from "discord.js";
+import { Collection } from "discord.js";
 import fs from 'fs';
 import path from 'path';
 import 'dotenv/config';
@@ -7,33 +7,20 @@ import Command from "./models/interfaces/Command";
 
 const client = new Client();
 
-client.once(Events.ClientReady, (c: any) => {
-    console.log(`Connected. Logged in as ${c.user.tag}`);
-});
+// Event handler
+const eventsPath = path.join(__dirname, 'events');
+const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
 
-client.on(Events.InteractionCreate, async (interaction: BaseInteraction) => {
-    if (!interaction.isChatInputCommand()) return;
+for (const file of eventFiles) {
+	const filePath = path.join(eventsPath, file);
+	const { event } = require(filePath);
 
-    const executedCommand: Command | undefined = (interaction.client as Client).commands!.get(interaction.commandName);
-
-    if (!executedCommand) {
-        console.error(`[ERROR] Command '${interaction.commandName}' does not exist.`);
-        return;
-    }
-
-    try {
-        await executedCommand.execute(interaction);
-    } catch (error) {
-        console.error(error);
-
-        if (interaction.replied || interaction.deferred) {
-            await interaction.followUp({ content: 'There was an error while executing this command', ephemeral: true });
-        } else {
-            await interaction.reply({ content: 'There was an error while executing this command', ephemeral: true })
-        }
-    }
-
-});
+	if (event.once) {
+		client.once(event.name, (...args) => event.execute(...args));
+	} else {
+		client.on(event.name, (...args) => event.execute(...args));
+	}
+}
 
 // Command handler
 client.commands = new Collection<string, Command>();
@@ -47,11 +34,12 @@ for (const folder of commandFolders) {
 
     for (const file of commandFiles) {
         const filePath = path.join(commandsPath, file);
-        const command = require(filePath).default;
+        const { command } = require(filePath);
 
         if ('data' in command && 'execute' in command) {
             client.commands.set(command.data.name, command);
         } else {
+            console.log(command)
             console.log(`[WARNING] The command '${file}' is not well formed.`);
         }
     }
