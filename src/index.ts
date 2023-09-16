@@ -1,7 +1,6 @@
 import { Collection } from "discord.js";
 import fs from 'fs';
 import path from 'path';
-import 'dotenv/config';
 import Client from "./models/classes/Client";
 import Command from "./models/interfaces/Command";
 
@@ -9,7 +8,7 @@ const client = new Client();
 
 // Event handler
 const eventsPath = path.join(__dirname, 'events');
-const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
+const eventFiles = fs.readdirSync(eventsPath);
 
 for (const file of eventFiles) {
 	const filePath = path.join(eventsPath, file);
@@ -30,7 +29,7 @@ const commandFolders = fs.readdirSync(foldersPath);
 
 for (const folder of commandFolders) {
     const commandsPath = path.join(foldersPath, folder);
-    const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+    const commandFiles = fs.readdirSync(commandsPath);
 
     for (const file of commandFiles) {
         const filePath = path.join(commandsPath, file);
