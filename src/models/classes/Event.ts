@@ -1,5 +1,3 @@
-import { Client } from "discord.js";
-
 export default class Event {
     name: string;
     once: boolean;
