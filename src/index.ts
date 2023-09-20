@@ -4,7 +4,7 @@ import path from 'path';
 import Client from "./models/classes/Client";
 import Command from "./models/interfaces/Command";
 
-const client = new Client();
+const client = Client.getInstance();
 
 // Event handler
 const eventsPath = path.join(__dirname, 'events');
