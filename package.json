@@ -11,6 +11,7 @@
   "author": "Peter Hawthorne",
   "license": "ISC",
   "dependencies": {
+    "@napi-rs/canvas": "^0.1.44",
     "discord.js": "^14.12.1",
     "node": "^20.5.0",
     "typescript": "^5.0.0"
