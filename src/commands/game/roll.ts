@@ -10,7 +10,7 @@ const command: Command = {
     async execute(interaction: CommandInteraction) {
         const result1 = Math.floor(Math.random() * 6) + 1;
         const result2 = Math.floor(Math.random() * 6) + 1;
-        const boardImg = await drawBoard();
+        const boardImg = await drawBoard(interaction);
 
         const boardEmbed = buildBoardEmbed(interaction)
             .setTitle(`${interaction.user.username}'s roll`)

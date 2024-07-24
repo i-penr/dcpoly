@@ -9,7 +9,7 @@ const command: Command = {
             .setName('board')
             .setDescription('Shows the board.'),
     async execute(interaction: CommandInteraction) {
-        const boardImg = await drawBoard();
+        const boardImg = await drawBoard(interaction);
         const boardEmbed = buildBoardEmbed(interaction)
             .setThumbnail(interaction.guild?.iconURL()!)
             .setTitle(`${interaction.guild?.name}'s board`)
