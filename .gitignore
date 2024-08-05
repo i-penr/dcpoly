@@ -3,3 +3,6 @@ node_modules
 dist/**
 bun*
 assets/**
+
+# Testing database
+database.sqlite

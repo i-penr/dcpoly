@@ -1,9 +1,9 @@
-import { Sequelize, DataTypes } from "sequelize";
-import { sequelize } from "./db";
+import { DataTypes } from "sequelize";
+import { sequelize } from "../db";
 
-const Player = sequelize.define('player', {
-    username: {
-        type: DataTypes.STRING,
+const User = sequelize.define('users', {
+    id: {
+        type: DataTypes.STRING(20),
         primaryKey: true
     },
     current_square: {
@@ -18,4 +18,4 @@ const Player = sequelize.define('player', {
     }
 });
 
-export { Player };
+export { User }
