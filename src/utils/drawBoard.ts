@@ -2,52 +2,64 @@ import { AttachmentBuilder, CommandInteraction } from "discord.js";
 import Canvas from '@napi-rs/canvas';
 import path from "node:path";
 import { request } from "undici";
+import { User } from "../db/tables/User";
+import { Game } from "../db/tables/Game";
+import BodyReadable from "undici/types/readable";
 
 const TOKEN_SIZE = 33;
 const BOARD_SIZE = 1173;
 const SQUARE_WIDTH = 90;
 const TOKEN_HEIGHT_POSITION = 153;
 
-export async function drawBoard(interaction: CommandInteraction) {
+export async function drawBoard(interaction: CommandInteraction, gameId: number) {
     const canvas = Canvas.createCanvas(BOARD_SIZE, BOARD_SIZE);
     const context = canvas.getContext('2d');
     const background = await Canvas.loadImage(path.join(__dirname, '..', '..', 'assets', 'board.png'));
     context.drawImage(background, 0, 0, canvas.width, canvas.height);
-    await drawTokens(context, interaction);
+
+    const players = await User.findAll({
+        include: {
+            model: Game,
+            where: {
+                id: gameId
+            }
+        }
+    });
+
+    for (let player of players) {
+        const dcUser = await interaction.client.users.fetch(player.get('id') as string);
+        const { body } = await request(dcUser.displayAvatarURL({ extension: 'jpg' }));
+        await drawToken(context, body, player.get('current_square') as number);
+    }
 
     return new AttachmentBuilder(await canvas.encode('png'), { name: 'board.png' });
 }
 
-async function drawTokens(context: Canvas.SKRSContext2D, interaction: CommandInteraction) {
-    const { body } = await request(interaction.user.displayAvatarURL({ extension: 'jpg' }));
+async function drawToken(context: Canvas.SKRSContext2D, body: BodyReadable, square: number) {
     const avatar = await Canvas.loadImage(await body.arrayBuffer());
-
-    for (let i = 0; i < 40; i++) {
-        const coords = getCoords(i);
-        context.save();
-        circle(context, coords);
-        context.drawImage(avatar, coords.x, coords.y, TOKEN_SIZE, TOKEN_SIZE);
-        context.restore();
-    }
-
+    const coords = getCoords(square);
+    context.save();
+    circle(context, coords);
+    context.drawImage(avatar, coords.x, coords.y, TOKEN_SIZE, TOKEN_SIZE);
+    context.restore();
 }
 
 function getCoords(square: number) {
     // Bottom-right corner
-    const coords = new Coordinates(BOARD_SIZE - TOKEN_HEIGHT_POSITION, TOKEN_HEIGHT_POSITION - TOKEN_SIZE);
+    const coords = new Coordinates(BOARD_SIZE - TOKEN_HEIGHT_POSITION, BOARD_SIZE - TOKEN_HEIGHT_POSITION);
 
     if (square >= 0 && square <= 10) {
         coords.y = BOARD_SIZE - 100;
         coords.x -= SQUARE_WIDTH * square;
     } else if (square > 10 && square <= 20) {
         coords.x = 100 - TOKEN_SIZE;
-        coords.y += SQUARE_WIDTH * (square%10);
+        coords.y -= SQUARE_WIDTH * (square%10);
     } else if (square > 20 && square < 30) {
         coords.y = 100 - TOKEN_SIZE;
-        coords.x -= SQUARE_WIDTH * (square%10);
+        coords.x -= SQUARE_WIDTH * (10 - (square%10));
     } else {
         coords.x = BOARD_SIZE - 100;
-        coords.y += SQUARE_WIDTH * (square%10);
+        coords.y -= SQUARE_WIDTH * (10 - (square%10));
     }
 
     return coords;
