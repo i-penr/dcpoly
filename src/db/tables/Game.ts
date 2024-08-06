@@ -19,8 +19,8 @@ const Game = sequelize.define('games', {
         validate: {
             isIn: [['new', 'active', 'finished']]
         },
-        defaultValue: 'active'
+        defaultValue: 'new'
     }
-});
+}, { timestamps: false });
 
 export { Game };

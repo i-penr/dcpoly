@@ -1,4 +1,5 @@
 import { Game } from "../db/tables/Game";
+import { Player } from "../db/tables/Player";
 
 export async function getCurrentActiveGame(guild_id: string | null) {
     try {
@@ -12,4 +13,10 @@ export async function getCurrentActiveGame(guild_id: string | null) {
         console.error(err.message);
         return null;
     }
+}
+
+export async function getPlayersInGame(gameId: number) {
+    return await Player.findAll({
+        where: { gameId: gameId }
+    });
 }

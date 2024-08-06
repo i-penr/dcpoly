@@ -2,9 +2,8 @@ import { AttachmentBuilder, CommandInteraction } from "discord.js";
 import Canvas from '@napi-rs/canvas';
 import path from "node:path";
 import { request } from "undici";
-import { User } from "../db/tables/User";
-import { Game } from "../db/tables/Game";
 import BodyReadable from "undici/types/readable";
+import { getPlayersInGame } from "./database";
 
 const TOKEN_SIZE = 33;
 const BOARD_SIZE = 1173;
@@ -17,17 +16,10 @@ export async function drawBoard(interaction: CommandInteraction, gameId: number)
     const background = await Canvas.loadImage(path.join(__dirname, '..', '..', 'assets', 'board.png'));
     context.drawImage(background, 0, 0, canvas.width, canvas.height);
 
-    const players = await User.findAll({
-        include: {
-            model: Game,
-            where: {
-                id: gameId
-            }
-        }
-    });
+    const players = await getPlayersInGame(gameId);
 
     for (let player of players) {
-        const dcUser = await interaction.client.users.fetch(player.get('id') as string);
+        const dcUser = await interaction.client.users.fetch(player.get('userId') as string);
         const { body } = await request(dcUser.displayAvatarURL({ extension: 'jpg' }));
         await drawToken(context, body, player.get('current_square') as number);
     }

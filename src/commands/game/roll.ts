@@ -5,6 +5,7 @@ import { drawBoard } from "../../utils/drawBoard";
 import { User } from "../../db/tables/User";
 import { Game } from "../../db/tables/Game";
 import { getCurrentActiveGame } from "../../utils/database";
+import { Player } from "../../db/tables/Player";
 
 const command: Command = {
     data: new SlashCommandBuilder()
@@ -45,14 +46,11 @@ const command: Command = {
 };
 
 async function updatePlayerPosition(roll: number, userId: string, gameId: number) {
-    const player = await User.findOne({
-        where: { id: userId },
-        include: {
-            model: Game,
-            where: {
-                id: gameId
-            }
-        }
+    const player = await Player.findOne({
+        where: { 
+            userId: userId,
+            gameId: gameId
+        },
     });
 
     if (player) {
