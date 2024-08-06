@@ -1,7 +1,7 @@
 import { Game } from "../db/tables/Game";
 import { Player } from "../db/tables/Player";
 
-export async function getCurrentActiveGame(guild_id: string | null) {
+export async function getCurrentActiveGame(guild_id: string) {
     try {
         return await Game.findOne({
             where: {

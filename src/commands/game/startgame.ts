@@ -9,14 +9,14 @@ const command: Command = {
             .setDescription('Start a game with the status new.'),
     async execute(interaction: CommandInteraction) {
         try {
-            const game = await Game.findOne({ where: { guild_id: interaction.guildId, status: 'new' }});
+            const game = await Game.findOne({ where: { guild_id: interaction.guildId!, status: 'new' }});
 
             if (!game) {
                 interaction.reply('There are no games with the status `new` on the server. Create a new game with `/newgame`');
                 return;
             }
 
-            const gameId: number = game.get('id') as number;
+            const gameId: number = game.get('id');
             const players = await getPlayersInGame(gameId);
 
             if (players.length < 2) {

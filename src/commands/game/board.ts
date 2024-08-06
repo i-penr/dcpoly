@@ -9,14 +9,14 @@ const command: Command = {
             .setName('board')
             .setDescription('Shows the board of the current active game on the server.'),
     async execute(interaction: CommandInteraction) {
-        const game = await getCurrentActiveGame(interaction.guildId);
+        const game = await getCurrentActiveGame(interaction.guildId!);
 
         if (!game) {
             interaction.reply('There are no current active games on the server.');
             return;
         }
 
-        const boardImg = await drawBoard(interaction, game.get('id') as number);
+        const boardImg = await drawBoard(interaction, game.get('id'));
         const boardEmbed = buildBoardEmbed(interaction)
             .setThumbnail(interaction.guild?.iconURL()!)
             .setTitle(`${interaction.guild?.name}'s board`)

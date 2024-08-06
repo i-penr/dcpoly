@@ -10,14 +10,14 @@ const command: Command = {
         .setDescription('Register to a game as a player!'),
     async execute(interaction: CommandInteraction) {
         try {
-            const game = await Game.findOne({ where: { guild_id: interaction.guildId, status: 'new' } });
+            const game = await Game.findOne({ where: { guild_id: interaction.guildId!, status: 'new' } });
 
             if (!game) {
                 interaction.reply('There aren\'t any games waiting on this server.');
                 return;
             }
 
-            const players = await getPlayersInGame(game.get('id') as number);
+            const players = await getPlayersInGame(game.get('id'));
 
             if (players.length > 8) {
                 throw new Error('PlayerLimitReached');
@@ -33,7 +33,7 @@ const command: Command = {
                 console.log(`User ${user.get('id')} added to database.`);
             }
 
-            user.addGame(game);
+            user.addGame(game.get('id'));
 
             interaction.reply(`User ${interaction.user.username} added successfully to the game.`);
 

@@ -19,9 +19,9 @@ export async function drawBoard(interaction: CommandInteraction, gameId: number)
     const players = await getPlayersInGame(gameId);
 
     for (let player of players) {
-        const dcUser = await interaction.client.users.fetch(player.get('userId') as string);
+        const dcUser = await interaction.client.users.fetch(player.get('userId'));
         const { body } = await request(dcUser.displayAvatarURL({ extension: 'jpg' }));
-        await drawToken(context, body, player.get('current_square') as number);
+        await drawToken(context, body, player.get('current_square'));
     }
 
     return new AttachmentBuilder(await canvas.encode('png'), { name: 'board.png' });

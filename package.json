@@ -20,6 +20,7 @@
     "undici": "^5.25.2"
   },
   "devDependencies": {
+    "@types/sequelize": "^4.28.20",
     "bun-types": "^1.0.2",
     "eslint": "^8.46.0"
   },

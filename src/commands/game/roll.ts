@@ -12,7 +12,7 @@ const command: Command = {
         .setName("roll")
         .setDescription("Rolls the dice!"),
     async execute(interaction: CommandInteraction) {
-        const game = await getCurrentActiveGame(interaction.guildId);
+        const game = await getCurrentActiveGame(interaction.guildId!);
 
         if (!game) {
             interaction.reply('There are no **active** games on this server. Create a game with `/newgame`');
@@ -23,7 +23,7 @@ const command: Command = {
         const result2 = Math.floor(Math.random() * 6) + 1;
 
         try {
-            await updatePlayerPosition(result1 + result2, interaction.user.id, game.get("id") as number);
+            await updatePlayerPosition(result1 + result2, interaction.user.id, game.get("id"));
         } catch (error: any) {
             if (error.message === 'PlayerNotInGame') {
                 interaction.reply(`User ${interaction.user} is not registered in the current game. Run \`/register\` to join game ${game.get('id')}`)

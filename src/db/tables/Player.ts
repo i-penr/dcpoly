@@ -1,9 +1,17 @@
-import { DataTypes } from "sequelize";
+import { CreationOptional, DataTypes, ForeignKey, InferAttributes, InferCreationAttributes, Model } from "sequelize";
 import { sequelize } from "../db";
 import { Game } from "./Game";
 import { User } from "./User";
 
-const Player = sequelize.define('players', {
+interface Player extends Model<InferAttributes<Player>, InferCreationAttributes<Player>> {
+    gameId: ForeignKey<Game['id']>;
+    userId: ForeignKey<User['id']>;
+    current_square: CreationOptional<number>;
+    money: CreationOptional<number>;
+}
+
+
+const Player = sequelize.define<Player>('players', {
     gameId: {
         type: DataTypes.INTEGER,
         references: {
