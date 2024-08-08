@@ -5,7 +5,7 @@ interface Game extends Model<InferAttributes<Game>, InferCreationAttributes<Game
     id: CreationOptional<number>;
     guild_id: string;
     start_date: CreationOptional<Date>;
-    status: 'new' | 'active' | 'finished';
+    status: CreationOptional<'new' | 'active' | 'finished'>;
 }
 
 const Game = sequelize.define<Game>('games', {

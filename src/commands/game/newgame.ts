@@ -17,7 +17,7 @@ const command: Command = {
             }
 
             const newGame = await Game.create({
-                guild_id: interaction.guildId
+                guild_id: interaction.guildId!
             });
             interaction.reply(`New game #${newGame.get('id')} created sucessfully.`);
         } catch (error: any) {

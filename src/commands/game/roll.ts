@@ -2,8 +2,6 @@ import { CommandInteraction, SlashCommandBuilder } from "discord.js";
 import Command from "../../models/interfaces/Command";
 import { buildBoardEmbed } from "../../utils/buildBoardEmbed";
 import { drawBoard } from "../../utils/drawBoard";
-import { User } from "../../db/tables/User";
-import { Game } from "../../db/tables/Game";
 import { getCurrentActiveGame } from "../../utils/database";
 import { Player } from "../../db/tables/Player";
 
