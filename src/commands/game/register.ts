@@ -3,6 +3,7 @@ import Command from '../../models/interfaces/Command';
 import { User } from "../../db/tables/User";
 import { Game } from "../../db/tables/Game";
 import { getPlayersInGame } from "../../utils/database";
+import { Player } from "../../db/tables/Player";
 
 const command: Command = {
     data: new SlashCommandBuilder()
@@ -33,7 +34,10 @@ const command: Command = {
                 console.log(`User ${user.get('id')} added to database.`);
             }
 
-            user.addGame(game.get('id'));
+            Player.create({
+                userId: user.get('id'),
+                gameId: game.get('id'),
+            })
 
             interaction.reply(`User ${interaction.user.username} added successfully to the game.`);
 

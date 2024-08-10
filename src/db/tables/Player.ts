@@ -21,7 +21,7 @@ const Player = sequelize.define<Player>('players', {
         primaryKey: true
     },
     userId: {
-        type: DataTypes.STRING,
+        type: DataTypes.STRING(20),
         references: {
             model: User,
             key: 'id'
@@ -38,6 +38,6 @@ const Player = sequelize.define<Player>('players', {
         defaultValue: 1500,
         allowNull: false
     }
-});
+}, { timestamps: false });
 
 export { Player };

@@ -2,6 +2,7 @@ import { CommandInteraction, SlashCommandBuilder} from "discord.js";
 import Command from '../../models/interfaces/Command';
 import { Game } from "../../db/tables/Game";
 import { getPlayersInGame } from "../../utils/database";
+import { Turn } from "../../db/tables/Turn";
 
 const command: Command = {
     data: new SlashCommandBuilder()
@@ -24,7 +25,14 @@ const command: Command = {
                 return;
             }
 
-            game.update({ status: 'active' });
+            for (let player of players) {
+                Turn.create({
+                    playerOrder: players.indexOf(player),
+                    gameId: player.get('gameId'),
+                    userId: player.get('userId')
+                })
+            }
+            game.update({ status: 'active', start_date: new Date() });
 
             interaction.reply(`Game #${gameId} has now started!.`);
         } catch (error: any) {
