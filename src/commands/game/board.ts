@@ -3,6 +3,7 @@ import Command from '../../models/interfaces/Command';
 import { buildBoardEmbed } from '../../utils/buildBoardEmbed';
 import { drawBoard } from '../../utils/drawBoard';
 import { getCurrentActiveGame } from '../../utils/database';
+import { buildErrorEmbed } from '../../utils/buildErorEmbedResponse';
 
 const command: Command = {
     data: new SlashCommandBuilder()
@@ -12,7 +13,7 @@ const command: Command = {
         const game = await getCurrentActiveGame(interaction.guildId!);
 
         if (!game) {
-            interaction.reply('There are no current active games on the server.');
+            interaction.reply(buildErrorEmbed(interaction, 'There are no current active games on the server.'));
             return;
         }
 

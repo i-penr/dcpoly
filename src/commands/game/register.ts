@@ -4,6 +4,7 @@ import { User } from "../../db/tables/User";
 import { Game } from "../../db/tables/Game";
 import { getPlayersInGame } from "../../utils/database";
 import { Player } from "../../db/tables/Player";
+import { buildErrorEmbed } from "../../utils/buildErorEmbedResponse";
 
 const command: Command = {
     data: new SlashCommandBuilder()
@@ -14,7 +15,7 @@ const command: Command = {
             const game = await Game.findOne({ where: { guild_id: interaction.guildId!, status: 'new' } });
 
             if (!game) {
-                interaction.reply('There aren\'t any games waiting on this server.');
+                interaction.reply(buildErrorEmbed(interaction, 'There aren\'t any games waiting on this server.'));
                 return;
             }
 
@@ -34,7 +35,7 @@ const command: Command = {
                 console.log(`User ${user.get('id')} added to database.`);
             }
 
-            Player.create({
+            await Player.create({
                 userId: user.get('id'),
                 gameId: game.get('id'),
             })
@@ -44,17 +45,16 @@ const command: Command = {
         } catch (error: any) {
             switch (error.name) {
                 case 'SequelizeUniqueConstraintError':
-                    interaction.reply('You are already registered in the current game.');
+                    interaction.reply(buildErrorEmbed(interaction, 'You are already registered in the current game.'));
                     return;
                 case 'PlayerLimitReached':
-                    interaction.reply('The game has reached its maximum amount of players (8). Run `/startgame` to start.');
+                    interaction.reply(buildErrorEmbed(interaction, 'The game has reached its maximum amount of players (8). Run `/startgame` to start.'));
                     return;
             }
 
             interaction.reply('Something went wrong with adding a user to the game.');
             console.error(error);
         }
-
     },
 }
 

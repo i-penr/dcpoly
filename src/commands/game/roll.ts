@@ -4,6 +4,7 @@ import { buildBoardEmbed } from "../../utils/buildBoardEmbed";
 import { drawBoard } from "../../utils/drawBoard";
 import { getCurrentActiveGame } from "../../utils/database";
 import { Player } from "../../db/tables/Player";
+import { buildErrorEmbed } from "../../utils/buildErorEmbedResponse";
 
 const command: Command = {
     data: new SlashCommandBuilder()
@@ -13,7 +14,7 @@ const command: Command = {
         const game = await getCurrentActiveGame(interaction.guildId!);
 
         if (!game) {
-            interaction.reply('There are no **active** games on this server. Create a game with `/newgame`');
+            interaction.reply(buildErrorEmbed(interaction, 'There are no **active** games on this server. Create a game with `/newgame`'));
             return;
         }
 
@@ -24,7 +25,7 @@ const command: Command = {
             await updatePlayerPosition(result1 + result2, interaction.user.id, game.get("id"));
         } catch (error: any) {
             if (error.message === 'PlayerNotInGame') {
-                interaction.reply(`User ${interaction.user} is not registered in the current game. Run \`/register\` to join game ${game.get('id')}`)
+                interaction.reply(buildErrorEmbed(interaction, `User ${interaction.user} is not registered in the current game. Run \`/register\` to join game ${game.get('id')}`))
                 return;
             }
 
