@@ -5,7 +5,7 @@ import { Game } from "./Game";
 interface Turn extends Model<InferAttributes<Turn>, InferCreationAttributes<Turn>> {
     playerOrder: CreationOptional<number>;
     gameId: number;
-    userId: string; 
+    userId: string;
 }
 
 const Turn = sequelize.define<Turn>('turns', {

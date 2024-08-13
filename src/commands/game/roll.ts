@@ -5,6 +5,8 @@ import { drawBoard } from "../../utils/drawBoard";
 import { getCurrentActiveGame } from "../../utils/database";
 import { Player } from "../../db/tables/Player";
 import { buildErrorEmbed } from "../../utils/buildErorEmbedResponse";
+import { Game } from "../../db/tables/Game";
+import { Turn } from "../../db/tables/Turn";
 
 const command: Command = {
     data: new SlashCommandBuilder()
@@ -18,11 +20,30 @@ const command: Command = {
             return;
         }
 
+        const player = await Player.findOne({
+            where: { 
+                userId: interaction.user.id,
+                gameId: game.get("id")
+            },
+        });
+
+        if (!player) {
+            interaction.reply(buildErrorEmbed(interaction, `User ${interaction.user} is not registered in the current game. Run \`/register\` to join game ${game.get('id')}`));
+            return;
+        }
+
+        if (!await isPlayersTurn(game, player)) {
+            interaction.reply({ ...buildErrorEmbed(interaction, `It is not your turn!`), ephemeral: true});
+            return;
+        }
+
+        game.update({ currentTurn: (game.get('currentTurn') + 1) % game.get('players')!.length });
+
         const result1 = Math.floor(Math.random() * 6) + 1;
         const result2 = Math.floor(Math.random() * 6) + 1;
 
         try {
-            await updatePlayerPosition(result1 + result2, interaction.user.id, game.get("id"));
+            await player.update({ current_square: (result1+result2 + (player.get('current_square') as number)) % 40 })
         } catch (error: any) {
             if (error.message === 'PlayerNotInGame') {
                 interaction.reply(buildErrorEmbed(interaction, `User ${interaction.user} is not registered in the current game. Run \`/register\` to join game ${game.get('id')}`))
@@ -44,19 +65,12 @@ const command: Command = {
     },
 };
 
-async function updatePlayerPosition(roll: number, userId: string, gameId: number) {
-    const player = await Player.findOne({
-        where: { 
-            userId: userId,
-            gameId: gameId
-        },
-    });
 
-    if (player) {
-        player.update({ current_square: (roll + (player.get('current_square') as number)) % 40 })
-    } else {
-        throw new Error('PlayerNotInGame')
-    }
+async function isPlayersTurn(game: Game, player: Player) {
+    const currentTurn = game.get('currentTurn');
+    const playerTurnId = await Turn.findOne({ where: { gameId: game.get('id'), userId: player.get('userId') } });
+
+    return currentTurn === playerTurnId?.get('playerOrder');
 }
 
 export { command };

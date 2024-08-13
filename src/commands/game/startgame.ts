@@ -30,9 +30,9 @@ const command: Command = {
                     playerOrder: players.indexOf(player),
                     gameId: player.get('gameId'),
                     userId: player.get('userId')
-                })
+                });
             }
-            game.update({ status: 'active', start_date: new Date() });
+            game.update({ status: 'active', start_date: new Date(), currentTurn: 0 });
 
             interaction.reply(`Game #${gameId} has now started!.`);
         } catch (error: any) {

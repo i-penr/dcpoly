@@ -7,6 +7,9 @@ export async function getCurrentActiveGame(guild_id: string) {
             where: {
                 guild_id: guild_id,
                 status: 'active'
+            },
+            include: {
+                model: Player
             }
         });
     } catch (err: any) {
