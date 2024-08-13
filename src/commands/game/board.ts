@@ -17,7 +17,7 @@ const command: Command = {
             return;
         }
 
-        const boardImg = await drawBoard(interaction, game.get('id'));
+        const boardImg = await drawBoard(interaction, game.players ?? []);
         const boardEmbed = buildBoardEmbed(interaction)
             .setThumbnail(interaction.guild?.iconURL()!)
             .setTitle(`${interaction.guild?.name}'s board`)

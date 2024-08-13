@@ -2,7 +2,6 @@ import { CommandInteraction, SlashCommandBuilder } from "discord.js";
 import Command from '../../models/interfaces/Command';
 import { User } from "../../db/tables/User";
 import { Game } from "../../db/tables/Game";
-import { getPlayersInGame } from "../../utils/database";
 import { Player } from "../../db/tables/Player";
 import { buildErrorEmbed } from "../../utils/buildErrorEmbedResponse";
 
@@ -19,7 +18,7 @@ const command: Command = {
                 return;
             }
 
-            const players = await getPlayersInGame(game.get('id'));
+            const players = game.players ?? [];
 
             if (players.length > 8) {
                 throw new Error('PlayerLimitReached');

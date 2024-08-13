@@ -20,11 +20,11 @@ const command: Command = {
         try {
             const game = await getCurrentActiveGame(interaction.guildId!);
 
-            if (!game || !game.players) {
+            if (!game) {
                 throw new Error('There are no **active** games on this server. Create a game with `/newgame`')
             }
 
-            const player = game.players.find((p) => p.userId === interaction.user.id);
+            const player = game.players?.find((p) => p.userId === interaction.user.id);
 
             if (!player) {
                 throw new Error(`User ${interaction.user} is not registered in the current game. Run \`/register\` to join game ${game.get('id')}`);
@@ -37,7 +37,7 @@ const command: Command = {
             await game.update({ currentTurn: (game.get('currentTurn') + 1) % game.get('players')!.length });
 
             const { result1, result2 } = await executePlayersRoll(player);
-            const { boardEmbed, boardImg } = await buildBoard(interaction, game, result1, result2);
+            const { boardEmbed, boardImg } = await buildBoard(interaction, game.players!, result1, result2);
 
             interaction.reply({ embeds: [boardEmbed], files: [boardImg] });
 
@@ -56,8 +56,8 @@ async function executePlayersRoll(player: Player) {
     return { result1, result2 };
 }
 
-async function buildBoard(interaction: CommandInteraction, game: Game, result1: number, result2: number) {
-    const boardImg = await drawBoard(interaction, (game.get('id') as number));
+async function buildBoard(interaction: CommandInteraction, players: Player[], result1: number, result2: number) {
+    const boardImg = await drawBoard(interaction, players);
 
     const boardEmbed = buildBoardEmbed(interaction)
         .setTitle(`${interaction.user.username}'s roll`)

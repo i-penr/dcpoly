@@ -3,20 +3,18 @@ import Canvas from '@napi-rs/canvas';
 import path from "node:path";
 import { request } from "undici";
 import BodyReadable from "undici/types/readable";
-import { getPlayersInGame } from "./database";
+import { Player } from "../db/tables/Player";
 
 const TOKEN_SIZE = 33;
 const BOARD_SIZE = 1173;
 const SQUARE_WIDTH = 90;
 const TOKEN_HEIGHT_POSITION = 153;
 
-export async function drawBoard(interaction: CommandInteraction, gameId: number) {
+export async function drawBoard(interaction: CommandInteraction, players: Player[]) {
     const canvas = Canvas.createCanvas(BOARD_SIZE, BOARD_SIZE);
     const context = canvas.getContext('2d');
     const background = await Canvas.loadImage(path.join(__dirname, '..', '..', 'assets', 'board.png'));
     context.drawImage(background, 0, 0, canvas.width, canvas.height);
-
-    const players = await getPlayersInGame(gameId);
 
     for (let player of players) {
         const dcUser = await interaction.client.users.fetch(player.get('userId'));

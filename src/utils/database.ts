@@ -17,9 +17,3 @@ export async function getCurrentActiveGame(guild_id: string) {
         return null;
     }
 }
-
-export async function getPlayersInGame(gameId: number) {
-    return await Player.findAll({
-        where: { gameId: gameId }
-    });
-}
