@@ -4,7 +4,7 @@ import { User } from "../../db/tables/User";
 import { Game } from "../../db/tables/Game";
 import { getPlayersInGame } from "../../utils/database";
 import { Player } from "../../db/tables/Player";
-import { buildErrorEmbed } from "../../utils/buildErorEmbedResponse";
+import { buildErrorEmbed } from "../../utils/buildErrorEmbedResponse";
 
 const command: Command = {
     data: new SlashCommandBuilder()

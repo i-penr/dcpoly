@@ -3,7 +3,7 @@ import Command from '../../models/interfaces/Command';
 import { buildBoardEmbed } from '../../utils/buildBoardEmbed';
 import { drawBoard } from '../../utils/drawBoard';
 import { getCurrentActiveGame } from '../../utils/database';
-import { buildErrorEmbed } from '../../utils/buildErorEmbedResponse';
+import { buildErrorEmbed } from '../../utils/buildErrorEmbedResponse';
 
 const command: Command = {
     data: new SlashCommandBuilder()
