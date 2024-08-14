@@ -8,6 +8,7 @@ interface Player extends Model<InferAttributes<Player>, InferCreationAttributes<
     userId: ForeignKey<User['id']>;
     current_square: CreationOptional<number>;
     money: CreationOptional<number>;
+    isJailed: CreationOptional<boolean>;
 }
 
 
@@ -36,6 +37,11 @@ const Player = sequelize.define<Player>('players', {
     money: {
         type: DataTypes.INTEGER,
         defaultValue: 1500,
+        allowNull: false
+    },
+    isJailed: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
         allowNull: false
     }
 }, { timestamps: false });
