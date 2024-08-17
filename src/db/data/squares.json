@@ -1,0 +1,32 @@
+[
+    {
+        "id": 0,
+        "name": "Start",
+        "type": "start",
+        "rent": -200
+    },
+    {
+        "id": 1,
+        "name": "Brown 1",
+        "type": "property",
+        "rent": 2
+    },
+    {
+        "id": 2,
+        "name": "Community",
+        "type": "card",
+        "rent": 0
+    },
+    {
+        "id": 3,
+        "name": "Brown 2",
+        "type": "property",
+        "rent": 4
+    },
+    {
+        "id": 4,
+        "name": "Big Tax",
+        "type": "tax",
+        "rent": 200
+    }
+]
