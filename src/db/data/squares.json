@@ -9,11 +9,13 @@
         "id": 1,
         "name": "Brown 1",
         "type": "property",
-        "rent": 2
+        "rent": 2,
+        "price": 60,
+        "mortgage": 60
     },
     {
         "id": 2,
-        "name": "Community",
+        "name": "Community 1",
         "type": "card",
         "rent": 0
     },
@@ -21,12 +23,90 @@
         "id": 3,
         "name": "Brown 2",
         "type": "property",
-        "rent": 4
+        "rent": 4,
+        "price": 60,
+        "mortgage": 30
     },
     {
         "id": 4,
         "name": "Big Tax",
         "type": "tax",
         "rent": 200
+    },
+    {
+        "id": 5,
+        "name": "Station 1",
+        "type": "station",
+        "rent": 25,
+        "price": 200,
+        "mortgage": 100
+    },
+    {
+        "id": 6,
+        "name": "Light Blue 1",
+        "type": "property",
+        "rent": 6,
+        "price": 100,
+        "mortgage": 50
+    },
+    {
+        "id": 7,
+        "name": "Luck 1",
+        "type": "community",
+        "rent": 0
+    },
+    {
+        "id": 8,
+        "name": "Light Blue 2",
+        "type": "property",
+        "rent": 6,
+        "price": 100,
+        "mortgage": 50
+    },
+    {
+        "id": 9,
+        "name": "Light Blue 3",
+        "type": "property",
+        "rent": 8,
+        "price": 120,
+        "mortgage": 60
+    },
+    {
+        "id": 10,
+        "name": "Jail (Visits)",
+        "type": "visit_jail",
+        "rent": 0
+    },
+    {
+        "id": 11,
+        "name": "Pink 1",
+        "type": "property",
+        "rent": 10,
+        "price": 140,
+        "mortgage": 70
+    },
+    {
+        "id": 12,
+        "name": "Special 1",
+        "type": "special",
+        "rent": 0,
+        "price": 150,
+        "mortgage": 75
+    },
+    {
+        "id": 13,
+        "name": "Pink 2",
+        "type": "property",
+        "rent": 10,
+        "price": 140,
+        "mortgage": 70
+    },
+    {
+        "id": 14,
+        "name": "Pink 3",
+        "type": "property",
+        "rent": "12",
+        "price": 160,
+        "mortgage": 80
     }
 ]
