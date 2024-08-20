@@ -198,5 +198,101 @@
         "rent": 22,
         "price": 260,
         "mortgage": 130
+    },
+    {
+        "id": 27,
+        "name": "Yellow 2",
+        "type": "property",
+        "rent": 22,
+        "price": 260,
+        "mortgage": 130
+    },
+    {
+        "id": 28,
+        "name": "Special 2",
+        "type": "special",
+        "rent": 0,
+        "price": 150,
+        "mortgage": 175
+    },
+    {
+        "id": 29,
+        "name": "Yellow 3",
+        "type": "property",
+        "rent": 24,
+        "price": 280,
+        "mortgage": 140
+    },
+    {
+        "id": 30,
+        "name": "Jailed",
+        "type": "jail",
+        "rent": 0
+    },
+    {
+        "id": 31,
+        "name": "Green 1",
+        "type": "property",
+        "rent": 26,
+        "price": 300,
+        "mortgage": 150
+    },
+    {
+        "id": 32,
+        "name": "Green 2",
+        "type": "property",
+        "rent": 26,
+        "price": 300,
+        "mortgage": 150
+    },
+    {
+        "id": 33,
+        "name": "Community 3",
+        "type": "card",
+        "rent": 0
+    },
+    {
+        "id": 34,
+        "name": "Green 3",
+        "type": "property",
+        "rent": 28,
+        "price": 320,
+        "mortgage": 160
+    },
+    {
+        "id": 35,
+        "name": "Station 4",
+        "type": "station",
+        "rent": 25,
+        "price": 200,
+        "mortgage": 100
+    },
+    {
+        "id": 36,
+        "name": "Luck 3",
+        "type": "card",
+        "rent": 0
+    },
+    {
+        "id": 37,
+        "name": "Dark Blue 1",
+        "type": "property",
+        "rent": 35,
+        "price": 350,
+        "mortgage": 175
+    },
+    {
+        "id": 38,
+        "name": "Small Tax",
+        "type": "tax",
+        "rent": 100
+    },
+    {
+        "id": 39,
+        "name": "Dark Blue 2",
+        "type": "property",
+        "rent": 50,
+        "price": 400,
+        "mortgage": 200
     }
 ]
