@@ -6,6 +6,7 @@ interface Turn extends Model<InferAttributes<Turn>, InferCreationAttributes<Turn
     playerOrder: CreationOptional<number>;
     gameId: number;
     userId: string;
+    hasRolled: CreationOptional<boolean>;
 }
 
 const Turn = sequelize.define<Turn>('turns', {
@@ -23,6 +24,10 @@ const Turn = sequelize.define<Turn>('turns', {
     },
     userId: {
         type: DataTypes.STRING(20)
+    },
+    hasRolled: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
     }
 }, { timestamps: false });
 

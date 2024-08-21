@@ -20,14 +20,17 @@ const command: Command = {
         try {
             const game = await getCurrentGameOrFail(interaction.guildId!);
             const player = getPlayerOrFail(game, interaction.user.id);
-            
-            if (!await isPlayersTurn(game, player)) throw new Error('It is not your turn');
 
-            const { result1, result2 } = await executePlayersRoll(player);
+            const playerTurn = await Turn.findOne({ where: { gameId: game.get('id'), userId: player.get('userId') } });
+
+            if (!await isPlayersTurn(game, playerTurn!)) throw new Error('It is not your turn');
+            if (await playerHasRolled(playerTurn!)) throw new Error('You have already rolled. Finish your turn by clicking the `End Turn` button');
+
+            const { result1, result2 } = await executePlayersRoll(player, playerTurn!);
             const { boardEmbed, boardImg } = await buildBoard(interaction, game.players!, result1, result2);
 
             const response = await forgeResponse(interaction, boardEmbed, boardImg);
-            await handleTurnEnd(interaction, response, game, boardEmbed);
+            await handleTurnEnd(interaction, response, game, boardEmbed, playerTurn!);
         } catch (error: any) {
             handleCommandError(interaction, error);
         }
@@ -48,23 +51,24 @@ function getPlayerOrFail(game: Game, userId: string): Player {
     return player;
 }
 
-async function handleTurnEnd(interaction: CommandInteraction, response: any, game: Game, boardEmbed: EmbedBuilder) {
+async function handleTurnEnd(interaction: CommandInteraction, response: any, game: Game, boardEmbed: EmbedBuilder, playerTurn: Turn) {
     try {
         const confirmation = await response.awaitMessageComponent({ filter: (i: Interaction) => i.user.id === interaction.user.id, time: 60000 });
 
         if (confirmation.customId === 'endTurn') {
-            await updateTurn(game);
+            await updateTurn(game, playerTurn);
             await confirmation.update({ content: 'Turn ended', components: [] });
         }
     } catch (e) {
-        await updateTurn(game);
+        await updateTurn(game, playerTurn);
     } finally {
         await interaction.editReply({ embeds: [boardEmbed.setTitle('Turn Ended')], components: [] });
     }
 }
 
-async function updateTurn(game: Game): Promise<void> {
+async function updateTurn(game: Game, playerTurn: Turn): Promise<void> {
     await game.update({ currentTurn: (game.get('currentTurn') + 1) });
+    await playerTurn.update({ hasRolled: false });
 }
 
 async function forgeResponse(interaction: CommandInteraction, boardEmbed: EmbedBuilder, boardImg: AttachmentBuilder) {
@@ -78,11 +82,12 @@ async function forgeResponse(interaction: CommandInteraction, boardEmbed: EmbedB
     return await interaction.reply({ embeds: [boardEmbed], files: [boardImg], components: [row] });
 }
 
-async function executePlayersRoll(player: Player) {
+async function executePlayersRoll(player: Player, playerTurn: Turn) {
     const result1 = rollDice();
     const result2 = rollDice();
 
     await player.update({ current_square: (result1 + result2 + player.get('current_square')) % 40 });
+    await playerTurn.update({ hasRolled: true });
 
     return { result1, result2 };
 }
@@ -101,11 +106,14 @@ async function buildBoard(interaction: CommandInteraction, players: Player[], re
     return { boardEmbed, boardImg };
 }
 
-async function isPlayersTurn(game: Game, player: Player): Promise<boolean> {
+async function isPlayersTurn(game: Game, playerTurn: Turn): Promise<boolean> {
     const currentTurn = game.get('currentTurn');
-    const playerTurn = await Turn.findOne({ where: { gameId: game.get('id'), userId: player.get('userId') } });
 
     return (currentTurn % game.get('players')!.length) === playerTurn?.get('playerOrder');
+}
+
+async function playerHasRolled(playerTurn: Turn) {
+    return playerTurn.get('hasRolled');
 }
 
 function handleCommandError(interaction: CommandInteraction, error: Error): void {
