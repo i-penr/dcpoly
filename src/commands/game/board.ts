@@ -2,7 +2,7 @@ import { CommandInteraction, SlashCommandBuilder} from 'discord.js';
 import Command from '../../models/interfaces/Command';
 import { buildBoardEmbed } from '../../utils/buildBoardEmbed';
 import { drawBoard } from '../../utils/drawBoard';
-import { getCurrentActiveGame } from '../../utils/database';
+import { getGameFromGuildWithStatus } from '../../utils/database';
 import { buildErrorEmbed } from '../../utils/buildErrorEmbedResponse';
 
 const command: Command = {
@@ -10,7 +10,7 @@ const command: Command = {
             .setName('board')
             .setDescription('Shows the board of the current active game on the server.'),
     async execute(interaction: CommandInteraction) {
-        const game = await getCurrentActiveGame(interaction.guildId!);
+        const game = await getGameFromGuildWithStatus(interaction.guildId!, 'active');
 
         if (!game) {
             interaction.reply(buildErrorEmbed(interaction, 'There are no current active games on the server.'));

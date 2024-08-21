@@ -3,6 +3,7 @@ import Command from '../../models/interfaces/Command';
 import { Game } from "../../db/tables/Game";
 import { Op } from "sequelize";
 import { buildErrorEmbed } from "../../utils/buildErrorEmbedResponse";
+import { getGameFromGuildWithStatus } from "../../utils/database";
 
 const command: Command = {
     data: new SlashCommandBuilder()
@@ -10,7 +11,7 @@ const command: Command = {
             .setDescription('Create a new game.'),
     async execute(interaction: CommandInteraction) {
         try {
-            const game = await Game.findOne({ where: { status: { [Op.not]: 'finished' } }});
+            const game = await getGameFromGuildWithStatus(interaction.guildId!, { [Op.not]: 'finished' });
 
             if (game) {
                 interaction.reply(buildErrorEmbed(interaction, `There is already a game with the status *${game.get('status')}* or *active*

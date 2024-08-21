@@ -3,6 +3,7 @@ import Command from '../../models/interfaces/Command';
 import { Game } from "../../db/tables/Game";
 import { Turn } from "../../db/tables/Turn";
 import { Player } from "../../db/tables/Player";
+import { getGameFromGuildWithStatus } from "../../utils/database";
 
 const command: Command = {
     data: new SlashCommandBuilder()
@@ -10,7 +11,7 @@ const command: Command = {
             .setDescription('Start a game with the status new.'),
     async execute(interaction: CommandInteraction) {
         try {
-            const game = await Game.findOne({ where: { guild_id: interaction.guildId!, status: 'new' }, include: { model: Player }});
+            const game = await getGameFromGuildWithStatus(interaction.guildId!, 'new');
 
             if (!game) {
                 interaction.reply('There are no games with the status `new` on the server. Create a new game with `/newgame`');

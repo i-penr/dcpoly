@@ -7,7 +7,7 @@ import { Square } from "./Square";
 interface Player extends Model<InferAttributes<Player>, InferCreationAttributes<Player>> {
     gameId: ForeignKey<Game['id']>;
     userId: ForeignKey<User['id']>;
-    current_square: ForeignKey<Square['id']>;
+    current_square: CreationOptional<ForeignKey<Square['id']>>;
     money: CreationOptional<number>;
     isJailed: CreationOptional<boolean>;
 }

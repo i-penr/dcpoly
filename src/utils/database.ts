@@ -1,12 +1,13 @@
+import { OperatorsAliases, Sequelize } from "sequelize";
 import { Game } from "../db/tables/Game";
 import { Player } from "../db/tables/Player";
 
-export async function getCurrentActiveGame(guild_id: string) {
+export async function getGameFromGuildWithStatus(guild_id: string, status: any) {
     try {
         return await Game.findOne({
             where: {
                 guild_id: guild_id,
-                status: 'active'
+                status: status
             },
             include: {
                 model: Player

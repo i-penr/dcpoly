@@ -5,7 +5,7 @@ import Command from "../../models/interfaces/Command";
 import { buildBoardEmbed } from "../../utils/buildBoardEmbed";
 import { drawBoard } from "../../utils/drawBoard";
 import { buildErrorEmbed } from "../../utils/buildErrorEmbedResponse";
-import { getCurrentActiveGame } from "../../utils/database";
+import { getGameFromGuildWithStatus } from "../../utils/database";
 
 // Database/Table Imports
 import { Player } from "../../db/tables/Player";
@@ -35,7 +35,7 @@ const command: Command = {
 };
 
 async function getCurrentGameOrFail(guildId: string): Promise<Game> {
-    const game = await getCurrentActiveGame(guildId);
+    const game = await getGameFromGuildWithStatus(guildId, 'active');
     if (!game) throw new Error('There are no **active** games on this server. Create a game with `/newgame`');
 
     return game;
