@@ -1,8 +1,6 @@
 import { CommandInteraction, SlashCommandBuilder} from "discord.js";
 import Command from '../../models/interfaces/Command';
-import { Game } from "../../db/tables/Game";
 import { Turn } from "../../db/tables/Turn";
-import { Player } from "../../db/tables/Player";
 import { getGameFromGuildWithStatus } from "../../utils/database";
 
 const command: Command = {
