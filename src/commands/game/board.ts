@@ -21,7 +21,7 @@ const command: Command = {
         const boardImg = await drawBoard(interaction, game.players ?? []);
         const boardEmbed = buildBoardEmbed(interaction)
             .setThumbnail(interaction.guild?.iconURL()!)
-            .setTitle(`${interaction.guild?.name}'s board`)
+            .setTitle(`${interaction.guild?.name}'s board - Game #${game.get('id')}`)
             .setDescription(await getPlayerPositionString(game.get('id'), interaction.client));
         
         interaction.reply({ embeds: [boardEmbed], files: [boardImg] });
