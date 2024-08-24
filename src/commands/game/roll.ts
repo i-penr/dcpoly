@@ -1,4 +1,4 @@
-import { ActionRowBuilder, AttachmentBuilder, ButtonBuilder, ButtonStyle, CommandInteraction, EmbedBuilder, Interaction, SlashCommandBuilder } from "discord.js";
+import { ActionRowBuilder, AttachmentBuilder, ButtonBuilder, ButtonStyle, CommandInteraction, Embed, EmbedBuilder, Interaction, SlashCommandBuilder } from "discord.js";
 import Command from "../../models/interfaces/Command";
 
 // Utility Imports
@@ -11,6 +11,7 @@ import { getGameFromGuildWithStatus } from "../../utils/database";
 import { Player } from "../../db/tables/Player";
 import { Game } from "../../db/tables/Game";
 import { Turn } from "../../db/tables/Turn";
+import { Square } from "../../db/tables/Square";
 
 const command: Command = {
     data: new SlashCommandBuilder()
@@ -30,6 +31,8 @@ const command: Command = {
             const { boardEmbed, boardImg } = await buildBoard(interaction, game.players!, result1, result2);
 
             const response = await forgeResponse(interaction, boardEmbed, boardImg);
+            const actionEmbed = await performSquareAction(player, interaction);
+            interaction.followUp({ embeds: [actionEmbed] });
             await handleTurnEnd(interaction, response, game, boardEmbed, playerTurn!);
         } catch (error: any) {
             handleCommandError(interaction, error);
@@ -69,6 +72,21 @@ async function handleTurnEnd(interaction: CommandInteraction, response: any, gam
 async function updateTurn(game: Game, playerTurn: Turn): Promise<void> {
     await game.update({ currentTurn: (game.get('currentTurn') + 1) });
     await playerTurn.update({ hasRolled: false });
+}
+
+async function performSquareAction(player: Player, interaction: CommandInteraction) {
+    const square = await Square.findOne({ where: { id: player.get('current_square') }});
+    let actionEmbed = buildBoardEmbed(interaction);
+
+    switch (square?.get('type')) {
+        case 'small_tax':
+            await player.update({ money: player.get('money') - 100 });
+            actionEmbed.setTitle('You landed on `Small Tax`')
+                .setDescription('You paid `100$` to the bank');
+            break;
+    }
+
+    return actionEmbed;
 }
 
 async function forgeResponse(interaction: CommandInteraction, boardEmbed: EmbedBuilder, boardImg: AttachmentBuilder) {
