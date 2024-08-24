@@ -118,8 +118,8 @@ async function buildBoard(interaction: CommandInteraction, players: Player[], re
     const boardImg = await drawBoard(interaction, players);
 
     const boardEmbed = buildBoardEmbed(interaction)
-        .setTitle(`${interaction.user.username}'s turn`)
-        .setDescription(`${interaction.user.username} rolled a **${result1}** and a **${result2}**`);
+        .setAuthor({ name: `${interaction.user.displayName}'s turn`, iconURL: interaction.user.avatarURL()! })
+        .setTitle(`${interaction.user.username} rolled a **${result1}** and a **${result2}**`);
 
     return { boardEmbed, boardImg };
 }
