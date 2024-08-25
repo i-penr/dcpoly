@@ -155,7 +155,7 @@ async function concludeTurn(interaction: CommandInteraction, response: any, game
     } catch {
         await updateTurn(game, playerTurn);
     } finally {
-        await interaction.editReply({ embeds: [boardEmbed.setTitle('Turn Ended')], components: [] });
+        await interaction.editReply({ embeds: [boardEmbed.setDescription('***TURN ENDED***')], components: [] });
     }
 }
 

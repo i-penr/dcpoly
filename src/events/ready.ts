@@ -8,13 +8,14 @@ import { Turn } from "../db/tables/Turn";
 import { Square } from "../db/tables/Square";
 import fs from "fs";
 import path from "path";
+import { setupTestGame } from "../utils/tests/setupTestGame";
 
 const event = new Event(Events.ClientReady, true, async (client) => {
     try {
         await setupDatabase();
         console.log(`Connected. Logged in as ${client.user!.tag}`);
     } catch (err: any) {
-        console.error('There was an error with the ClientReady event: ', {err});
+        console.error('There was an error with the ClientReady event: ', { err });
     }
 });
 
@@ -23,6 +24,9 @@ async function setupDatabase() {
     setupDatabaseAssociations();
 
     await Square.bulkCreate(JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'db', 'data', 'squares.json'), 'utf-8')));
+
+    // tests
+    await setupTestGame();
 }
 
 function setupDatabaseAssociations() {
