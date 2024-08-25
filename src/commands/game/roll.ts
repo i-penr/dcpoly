@@ -75,14 +75,32 @@ async function updateTurn(game: Game, playerTurn: Turn): Promise<void> {
 }
 
 async function performSquareAction(player: Player, interaction: CommandInteraction) {
-    const square = await Square.findOne({ where: { id: player.get('current_square') }});
-    let actionEmbed = buildBoardEmbed(interaction);
+    const square = await Square.findOne({ where: { id: player.get('current_square') } });
+    let actionEmbed = buildBoardEmbed(interaction).setTitle(`You landed on ${square?.get('name')}`)
 
     switch (square?.get('type')) {
         case 'small_tax':
             await player.update({ money: player.get('money') - 100 });
-            actionEmbed.setTitle('You landed on `Small Tax`')
-                .setDescription('You paid `100$` to the bank');
+            actionEmbed.setDescription('You paid `100$` to the bank');
+            break;
+        case 'big_tax':
+            await player.update({ money: player.get('money') - 200 });
+            actionEmbed.setDescription('You paid `200$` to the bank');
+            break;
+        case 'visit_jail':
+            actionEmbed.setDescription('Don\'t worry, you are just visiting');
+            break;
+        case 'free_space':
+            actionEmbed.setDescription('Just take a break.');
+            break;
+        case 'start':
+            await player.update({ money: player.get('money') + 200 });
+            actionEmbed.setDescription('You earned `200$` for completing a lap!');
+            break;
+        case 'jail':
+            await player.update({ current_square: 10 });
+            // TODO: add jail effect
+            actionEmbed.setDescription('You are going to jail for the next 3 turns. You can get out of jail by paying `50$`, rolling doubles or using a `Get out of Jail Card`');
             break;
     }
 
