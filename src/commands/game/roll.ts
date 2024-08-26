@@ -15,6 +15,7 @@ import { buildBoardEmbed } from "../../utils/buildBoardEmbed";
 import { drawBoard } from "../../utils/drawBoard";
 import { buildErrorEmbed } from "../../utils/buildErrorEmbedResponse";
 import { getGameFromGuildWithStatus } from "../../utils/database";
+import { promptJailEmbed, waitForJailResponse } from "../../utils/jailTurn";
 
 // Database/Table Imports
 import { Player } from "../../db/tables/Player";
@@ -33,6 +34,12 @@ const command: Command = {
             const playerTurn = await getPlayerTurn(game, player);
 
             await validateTurn(game, playerTurn);
+
+            if (player.get('jailStatus') !== -1) {
+                const jailPrompt = await promptJailEmbed(player, interaction);
+                await waitForJailResponse(jailPrompt, interaction, player);
+                return;
+            }
 
             const { result1, result2 } = await executePlayerRoll(player, playerTurn);
             const { boardEmbed, boardImg } = await buildBoard(interaction, game.players!, result1, result2);
@@ -132,8 +139,7 @@ async function handleSquareAction(player: Player, interaction: CommandInteractio
             actionEmbed.setDescription('You earned `200$` for completing a lap!');
             break;
         case 'jail':
-            await player.update({ current_square: 10 });
-            // TODO jail functionality
+            await player.update({ current_square: 10, jailStatus: 0 });
             actionEmbed.setDescription('You are going to jail for the next 3 turns. You can get out of jail by paying `50$`, rolling doubles, or using a `Get out of Jail Card`');
             break;
     }

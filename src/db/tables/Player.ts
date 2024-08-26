@@ -9,7 +9,8 @@ interface Player extends Model<InferAttributes<Player>, InferCreationAttributes<
     userId: ForeignKey<User['id']>;
     current_square: CreationOptional<ForeignKey<Square['id']>>;
     money: CreationOptional<number>;
-    isJailed: CreationOptional<boolean>;
+    jailStatus: CreationOptional<-1 | 0 | 1 | 2 | 3>; // -1, not in jail; 0,1,2,3 turns in jail
+    jailFreeCards: CreationOptional<number>;
 }
 
 
@@ -40,9 +41,14 @@ const Player = sequelize.define<Player>('players', {
         defaultValue: 1500,
         allowNull: false
     },
-    isJailed: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false,
+    jailStatus: {
+        type: DataTypes.TINYINT,
+        defaultValue: 0,
+        allowNull: false
+    },
+    jailFreeCards: {
+        type: DataTypes.TINYINT,
+        defaultValue: 0,
         allowNull: false
     }
 }, { timestamps: false });
