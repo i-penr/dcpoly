@@ -43,7 +43,7 @@ const Player = sequelize.define<Player>('players', {
     },
     jailStatus: {
         type: DataTypes.TINYINT,
-        defaultValue: 0,
+        defaultValue: -1,
         allowNull: false
     },
     jailFreeCards: {

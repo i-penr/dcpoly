@@ -15,13 +15,14 @@ import { buildBoardEmbed } from "../../utils/buildBoardEmbed";
 import { drawBoard } from "../../utils/drawBoard";
 import { buildErrorEmbed } from "../../utils/buildErrorEmbedResponse";
 import { getGameFromGuildWithStatus } from "../../utils/database";
-import { promptJailEmbed, waitForJailResponse } from "../../utils/jailTurn";
+import { promptJailActionAndCheckIfPlays } from "../../utils/actions/jailTurn";
 
 // Database/Table Imports
 import { Player } from "../../db/tables/Player";
 import { Game } from "../../db/tables/Game";
 import { Turn } from "../../db/tables/Turn";
 import { Square } from "../../db/tables/Square";
+import { rollDices } from "../../utils/actions/rollDices";
 
 const command: Command = {
     data: new SlashCommandBuilder()
@@ -36,9 +37,8 @@ const command: Command = {
             await validateTurn(game, playerTurn);
 
             if (player.get('jailStatus') !== -1) {
-                const jailPrompt = await promptJailEmbed(player, interaction);
-                await waitForJailResponse(jailPrompt, interaction, player);
-                return;
+                const continuesPlaying = await promptJailActionAndCheckIfPlays(player, interaction);
+                if (!continuesPlaying) return;
             }
 
             const { result1, result2 } = await executePlayerRoll(player, playerTurn);
@@ -80,18 +80,13 @@ async function validateTurn(game: Game, playerTurn: Turn): Promise<void> {
 }
 
 async function executePlayerRoll(player: Player, playerTurn: Turn): Promise<{ result1: number, result2: number }> {
-    const result1 = rollDice();
-    const result2 = rollDice();
+    const { result1, result2 } = rollDices();
     const newSquare = (result1 + result2 + player.get('current_square')) % 40;
 
     await player.update({ current_square: newSquare });
     await playerTurn.update({ hasRolled: true });
 
     return { result1, result2 };
-}
-
-function rollDice(): number {
-    return Math.floor(Math.random() * 6) + 1;
 }
 
 async function buildBoard(interaction: CommandInteraction, players: Player[], result1: number, result2: number) {
@@ -139,7 +134,7 @@ async function handleSquareAction(player: Player, interaction: CommandInteractio
             actionEmbed.setDescription('You earned `200$` for completing a lap!');
             break;
         case 'jail':
-            await player.update({ current_square: 10, jailStatus: 0 });
+            await player.update({ current_square: 10, jailStatus: 3 });
             actionEmbed.setDescription('You are going to jail for the next 3 turns. You can get out of jail by paying `50$`, rolling doubles, or using a `Get out of Jail Card`');
             break;
     }
