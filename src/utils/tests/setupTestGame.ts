@@ -13,7 +13,7 @@ export async function setupTestGame() {
             id: '540270864143220805'
         }
     ]);
-    await Player.create({ gameId: 1, userId: '220525113404030987', jailStatus: -1, doubleRollStreak: 0 });
+    await Player.create({ gameId: 1, userId: '220525113404030987', jailStatus: 3, doubleRollStreak: 0 });
     await Player.create({ gameId: 1, userId: '540270864143220805' });
     await Turn.bulkCreate([{
         playerOrder: 0,

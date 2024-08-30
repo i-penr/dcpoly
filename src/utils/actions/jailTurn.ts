@@ -1,4 +1,4 @@
-import { CommandInteraction, AttachmentBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, Interaction, InteractionResponse, ButtonInteraction, WrapBooleanCache, CacheType, Embed } from "discord.js";
+import { CommandInteraction, AttachmentBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, Interaction, InteractionResponse } from "discord.js";
 import { Player } from "../../db/tables/Player";
 
 export async function promptJailActionAndCheckIfPlays(player: Player, interaction: CommandInteraction, result1: number, result2: number) {
@@ -64,11 +64,11 @@ async function waitForJailResponse(response: InteractionResponse, player: Player
             await player.update({ doubleRollStreak: player.get('doubleRollStreak') + 1 });
             description += '\nYou got doubles! You are free to go!';
         } else {
-            const jailStatus = player.get('jailStatus');
+            const newJailStatus = player.get('jailStatus') - 1 as -1; // yikes
             continuesPlaying = false;
 
-            await player.update({ jailStatus: (jailStatus - 1) as -1 | 0 | 1 | 2 | 3 }); // yikes
-            description += `\nYou didn\'t roll doubles. You still have \`${jailStatus-1}\` turns left in jail.`;
+            await player.update({ jailStatus: newJailStatus });
+            description += `\nYou didn\'t roll doubles. You still have \`${newJailStatus}\` turns left in jail.`;
         }
     } finally {
         jailEmbed.setTitle(title!);
@@ -79,4 +79,3 @@ async function waitForJailResponse(response: InteractionResponse, player: Player
         return continuesPlaying;
     }
 }
-
