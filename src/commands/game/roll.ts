@@ -36,16 +36,19 @@ const command: Command = {
 
             await validateTurn(game, playerTurn);
 
+            const { result1, result2 } = rollDices();
+
             if (player.get('jailStatus') !== -1) {
-                const continuesPlaying = await promptJailActionAndCheckIfPlays(player, interaction);
+                const continuesPlaying = await promptJailActionAndCheckIfPlays(player, interaction, result1, result2);
                 if (!continuesPlaying) return;
             }
 
-            const { result1, result2 } = await executePlayerRoll(player, playerTurn);
-            const { boardEmbed, boardImg } = await buildBoard(interaction, game.players!, result1, result2);
-
-            const response = await sendBoardResponse(interaction, boardEmbed, boardImg);
+            await executePlayerMove(player, playerTurn, result1 + result2);
             const actionEmbed = await handleSquareAction(player, interaction);
+            await checkDoubleRollStreak(result1 === result2, player, actionEmbed);
+
+            const { boardEmbed, boardImg } = await buildBoard(interaction, game.players!, result1, result2);
+            const response = await sendBoardResponse(interaction, boardEmbed, boardImg);
 
             interaction.followUp({ embeds: [actionEmbed] });
 
@@ -55,6 +58,19 @@ const command: Command = {
         }
     },
 };
+
+async function checkDoubleRollStreak(doubles: boolean, player: Player, actionEmbed: EmbedBuilder) {
+    if (doubles) {
+        const newDoubleRollStreak = player.get('doubleRollStreak') + 1;
+
+        if (newDoubleRollStreak === 3) {
+            actionEmbed.setTitle('You rolled doubles 3 times in a row.');
+            await goToJail(player, actionEmbed);
+        } else {
+            await player.update({ doubleRollStreak: newDoubleRollStreak });
+        }
+    } else await player.update({ doubleRollStreak: 0 });
+}
 
 async function getCurrentGameOrFail(guildId: string): Promise<Game> {
     const game = await getGameFromGuildWithStatus(guildId, 'active');
@@ -79,14 +95,11 @@ async function validateTurn(game: Game, playerTurn: Turn): Promise<void> {
     if (await playerHasRolled(playerTurn)) throw new Error('You have already rolled. Finish your turn by clicking the `End Turn` button');
 }
 
-async function executePlayerRoll(player: Player, playerTurn: Turn): Promise<{ result1: number, result2: number }> {
-    const { result1, result2 } = rollDices();
-    const newSquare = (result1 + result2 + player.get('current_square')) % 40;
+async function executePlayerMove(player: Player, playerTurn: Turn, squaresMoved: number): Promise<void> {
+    const newSquare = (squaresMoved + player.get('current_square')) % 40;
 
     await player.update({ current_square: newSquare });
     await playerTurn.update({ hasRolled: true });
-
-    return { result1, result2 };
 }
 
 async function buildBoard(interaction: CommandInteraction, players: Player[], result1: number, result2: number) {
@@ -105,7 +118,12 @@ async function sendBoardResponse(interaction: CommandInteraction, boardEmbed: Em
         .setStyle(ButtonStyle.Danger);
 
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(endTurnButton);
-    return await interaction.reply({ embeds: [boardEmbed], files: [boardImg], components: [row] });
+
+    if (!interaction.replied) {
+        return await interaction.reply({ embeds: [boardEmbed], files: [boardImg], components: [row] });
+    } else {
+        return await interaction.followUp({ embeds: [boardEmbed], files: [boardImg], components: [row] });
+    }
 }
 
 async function handleSquareAction(player: Player, interaction: CommandInteraction): Promise<EmbedBuilder> {
@@ -134,12 +152,17 @@ async function handleSquareAction(player: Player, interaction: CommandInteractio
             actionEmbed.setDescription('You earned `200$` for completing a lap!');
             break;
         case 'jail':
-            await player.update({ current_square: 10, jailStatus: 3 });
-            actionEmbed.setDescription('You are going to jail for the next 3 turns. You can get out of jail by paying `50$`, rolling doubles, or using a `Get out of Jail Card`');
+            await goToJail(player, actionEmbed);
             break;
     }
 
     return actionEmbed;
+}
+
+async function goToJail(player: Player, actionEmbed: EmbedBuilder) {
+    await player.update({ current_square: 10, jailStatus: 3 });
+    await player.update({ doubleRollStreak: 0 });
+    actionEmbed.setDescription('You are going to jail for the next \`3\` turns. You can get out of jail by paying `50$`, rolling doubles, or using a `Get out of Jail Card`');
 }
 
 async function concludeTurn(interaction: CommandInteraction, response: any, game: Game, boardEmbed: EmbedBuilder, playerTurn: Turn): Promise<void> {
@@ -151,12 +174,11 @@ async function concludeTurn(interaction: CommandInteraction, response: any, game
 
         if (confirmation.customId === 'endTurn') {
             await updateTurn(game, playerTurn);
-            await confirmation.update({ content: 'Turn ended', components: [] });
+            await confirmation.update({ content: '***TURN ENDED***', components: [] });
         }
     } catch {
+        await response.edit({ content: '***TURN ENDED***', components: [] })
         await updateTurn(game, playerTurn);
-    } finally {
-        await interaction.editReply({ embeds: [boardEmbed.setDescription('***TURN ENDED***')], components: [] });
     }
 }
 

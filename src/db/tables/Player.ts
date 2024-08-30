@@ -11,6 +11,7 @@ interface Player extends Model<InferAttributes<Player>, InferCreationAttributes<
     money: CreationOptional<number>;
     jailStatus: CreationOptional<-1 | 0 | 1 | 2 | 3>; // -1, not in jail; 0,1,2,3 turns in jail
     jailFreeCards: CreationOptional<number>;
+    doubleRollStreak: CreationOptional<number>;
 }
 
 
@@ -48,6 +49,11 @@ const Player = sequelize.define<Player>('players', {
     },
     jailFreeCards: {
         type: DataTypes.TINYINT,
+        defaultValue: 0,
+        allowNull: false
+    },
+    doubleRollStreak: {
+        type: DataTypes.SMALLINT,
         defaultValue: 0,
         allowNull: false
     }

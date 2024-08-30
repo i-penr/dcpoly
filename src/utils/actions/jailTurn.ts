@@ -1,8 +1,7 @@
 import { CommandInteraction, AttachmentBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, Interaction, InteractionResponse, ButtonInteraction, WrapBooleanCache, CacheType, Embed } from "discord.js";
 import { Player } from "../../db/tables/Player";
-import { rollDices } from "./rollDices";
 
-export async function promptJailActionAndCheckIfPlays(player: Player, interaction: CommandInteraction) {
+export async function promptJailActionAndCheckIfPlays(player: Player, interaction: CommandInteraction, result1: number, result2: number) {
     const jailedIcon = new AttachmentBuilder('./assets/jailed.png');
     const jailEmbed = new EmbedBuilder()
         .setTitle('You are in `jail`. What do you want to do?')
@@ -32,10 +31,10 @@ export async function promptJailActionAndCheckIfPlays(player: Player, interactio
         .setDisabled(player.jailFreeCards === 0);
 
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(rollDiceButton, payUpButton, getOutOfJailFreeCardButton);
-    return await waitForJailResponse(await interaction.reply({ embeds: [jailEmbed], files: [jailedIcon], components: [row] }), player, jailEmbed);
+    return await waitForJailResponse(await interaction.reply({ embeds: [jailEmbed], files: [jailedIcon], components: [row] }), player, jailEmbed, result1, result2);
 }
 
-async function waitForJailResponse(response: InteractionResponse, player: Player, jailEmbed: EmbedBuilder) {
+async function waitForJailResponse(response: InteractionResponse, player: Player, jailEmbed: EmbedBuilder, result1: number, result2: number) {
     let title: string, description: string = 'You are now out of jail';
     let continuesPlaying = true;
 
@@ -58,12 +57,11 @@ async function waitForJailResponse(response: InteractionResponse, player: Player
                 throw 'DefaultCase';
         }
     } catch {
-        const { result1, result2 } = rollDices();
-
         title = 'You chose: \`Roll Dices\`';
         description = `You rolled a \`${result1}\` and a \`${result2}\``;
 
         if (result1 === result2) {
+            await player.update({ doubleRollStreak: player.get('doubleRollStreak') + 1 });
             description += '\nYou got doubles! You are free to go!';
         } else {
             const jailStatus = player.get('jailStatus');
