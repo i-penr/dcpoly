@@ -35,7 +35,7 @@ export async function promptJailActionAndCheckIfPlays(player: Player, interactio
 }
 
 async function waitForJailResponse(response: InteractionResponse, player: Player, jailEmbed: EmbedBuilder, result1: number, result2: number) {
-    let title: string, description: string = 'You are now out of jail';
+    let title: string = '', description: string = 'You are now out of jail';
     let continuesPlaying = true;
 
     try {
@@ -71,7 +71,7 @@ async function waitForJailResponse(response: InteractionResponse, player: Player
             description += `\nYou didn\'t roll doubles. You still have \`${newJailStatus}\` turns left in jail.`;
         }
     } finally {
-        jailEmbed.setTitle(title!);
+        jailEmbed.setTitle(title);
         jailEmbed.setDescription(description);
 
         await response.edit({ embeds: [jailEmbed], components: [] });
