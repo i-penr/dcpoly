@@ -13,7 +13,7 @@ export async function setupDatabase() {
     await sequelize.sync({ force: true });
     setupDatabaseAssociations();
 
-    await Square.bulkCreate(JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'db', 'data', 'squares.json'), 'utf-8')));
+    await Square.bulkCreate(JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'squares.json'), 'utf-8')));
 
     // tests
     await setupTestGame();

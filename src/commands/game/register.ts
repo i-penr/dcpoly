@@ -1,7 +1,6 @@
 import { CommandInteraction, SlashCommandBuilder } from "discord.js";
 import Command from '../../models/interfaces/Command';
 import { User } from "../../db/tables/User";
-import { Game } from "../../db/tables/Game";
 import { Player } from "../../db/tables/Player";
 import { buildErrorEmbed } from "../../utils/buildErrorEmbedResponse";
 import { getGameFromGuildWithStatus } from "../../utils/database";
