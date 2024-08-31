@@ -1,4 +1,3 @@
-import { OperatorsAliases, Sequelize } from "sequelize";
 import { Game } from "../db/tables/Game";
 import { Player } from "../db/tables/Player";
 
