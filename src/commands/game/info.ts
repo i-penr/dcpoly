@@ -1,8 +1,9 @@
-import { CommandInteraction, EmbedBuilder, SlashCommandBuilder, User } from 'discord.js';
+import { CommandInteraction, SlashCommandBuilder, User } from 'discord.js';
 import Command from '../../models/interfaces/Command';
 import { getGameFromGuildWithStatus } from '../../utils/database';
 import { buildErrorEmbed } from '../../utils/buildErrorEmbedResponse';
 import { Player } from '../../db/tables/Player';
+import { buildTemplateEmbed } from '../../utils/buildTemplateEmbed';
 
 const command: Command = {
     data: new SlashCommandBuilder()
@@ -20,32 +21,39 @@ const command: Command = {
             return;
         }
 
-        const players = game.get('players');
+        const players = game.get('players') ?? [];
         const chosenUser: User = interaction.options.getUser('player') ?? interaction.user;
-        const chosenPlayer = players?.find((p) => p.get('userId') === chosenUser.id);
+        const chosenPlayer = players.find((p) => p.get('userId') === chosenUser.id);
 
         if (!chosenPlayer) {
             interaction.reply({ ...buildErrorEmbed(interaction, `User ${chosenUser} is not a player in the game.`), ephemeral: true });
             return;
         }
 
-        const playerEmbed = new EmbedBuilder()
-            .setTitle(`${chosenUser.username}'s info`)
-            .setColor('Blue')
+        const playerEmbed = buildInfoEmbed(chosenPlayer, interaction, players);
+
+        interaction.reply({ embeds: [playerEmbed] });
+    },
+}
+
+function buildInfoEmbed(player: Player, interaction: CommandInteraction, players: Player[]) {
+    const infoEmbed = buildTemplateEmbed(interaction)
+            .setTitle(`${interaction.user.username}'s info`)
+            .setThumbnail(interaction.user.avatarURL())
             .addFields(
                 {
                     name: 'Game Ranking',
-                    value: getPlayerRanking(players!, chosenPlayer),
+                    value: getPlayerRanking(players!, player),
                     inline: true
                 },
                 {
                     name: 'Money',
-                    value: `${chosenPlayer.get('money').toLocaleString()}$`,
+                    value: `${player.get('money').toLocaleString()}$`,
                     inline: true
                 },
                 {
                     name: 'Current Square',
-                    value: `${chosenPlayer.get('current_square')}`
+                    value: `${player.get('current_square')}`
                 },
                 {
                     name: 'Owned Properties',
@@ -59,14 +67,10 @@ const command: Command = {
                 },
                 {
                     name: '"Get Out of Jail Free" Cards',
-                    value: `${chosenPlayer.get('jailFreeCards')}`
+                    value: `${player.get('jailFreeCards')}`
                 }
-            )
-            .setThumbnail(chosenUser.avatarURL())
-            .setTimestamp();
-
-        interaction.reply({ embeds: [playerEmbed] });
-    },
+            );
+    return infoEmbed
 }
 
 function getPlayerRanking(playerList: Player[], player: Player): string {
