@@ -79,9 +79,7 @@ const command: Command = {
 };
 
 function hasRolledDoublesThriceInARow(doubles: boolean, player: Player) {
-    if (!doubles) return false;
-
-    return player.get('doubleRollStreak') === 2;
+    return doubles && player.get('doubleRollStreak') === 2;
 }
 
 async function getCurrentGameOrFail(guildId: string): Promise<Game> {
