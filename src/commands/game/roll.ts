@@ -50,10 +50,10 @@ const command: Command = {
             const { boardEmbed, boardImg } = await buildBoard(interaction, game.players!, result1, result2);
             const response = await sendBoardResponse(interaction, boardEmbed, boardImg);
 
-            const actionEmbed = await handleSquareAction(player, interaction);
-            await checkDoubleRollStreak(result1 === result2, player, actionEmbed);
+            const actionEmbeds: EmbedBuilder[] = await handleSquareAction(player, interaction);
+            await checkDoubleRollStreak(result1 === result2, player, actionEmbeds[0]);
 
-            interaction.followUp({ embeds: [actionEmbed] });
+            interaction.followUp({ embeds: actionEmbeds });
 
             await concludeTurn(interaction, response, game, playerTurn);
         } catch (error: any) {
@@ -130,11 +130,12 @@ async function sendBoardResponse(interaction: CommandInteraction, boardEmbed: Em
     }
 }
 
-async function handleSquareAction(player: Player, interaction: CommandInteraction): Promise<EmbedBuilder> {
+async function handleSquareAction(player: Player, interaction: CommandInteraction): Promise<EmbedBuilder[]> {
     const square = await Square.findOne({ where: { id: player.get('current_square') } });
     let actionEmbed = buildBoardEmbed(interaction).setTitle(`You landed on ${square?.get('name')}`);
+    let embeds = [actionEmbed];
 
-    if (!square) return actionEmbed;
+    if (!square) return embeds;
 
     switch (square.get('type')) {
         case 'small_tax':
@@ -162,14 +163,13 @@ async function handleSquareAction(player: Player, interaction: CommandInteractio
         case 'card':
             const cardEmbed = await useCard(interaction, player);
             if (cardEmbed) {
-                actionEmbed.setDescription('You take a `Chance Card` from the deck');
-                await interaction.followUp({ embeds: [actionEmbed] });
-                actionEmbed = cardEmbed;
+                actionEmbed.setDescription('You take a `Chance Card` from the deck...');
+                embeds.push(cardEmbed);
             }
             break;
     }
 
-    return actionEmbed;
+    return embeds;
 }
 
 
