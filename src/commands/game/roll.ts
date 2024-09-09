@@ -25,6 +25,7 @@ import { Square } from "../../db/tables/Square";
 import { rollDices } from "../../utils/actions/rollDices";
 import { goToJail } from "../../utils/actions/goToJail";
 import { useCard } from "../../utils/actions/cardTurn";
+import { buildTemplateEmbed } from "../../utils/buildTemplateEmbed";
 
 const command: Command = {
     data: new SlashCommandBuilder()
@@ -38,7 +39,7 @@ const command: Command = {
 
             await validateTurn(game, playerTurn);
 
-            const { result1, result2 } = { result1: 7, result2: 0 };
+            const { result1, result2 } = rollDices();
 
             if (player.get('jailStatus') !== -1) {
                 const continuesPlaying = await promptJailActionAndCheckIfPlays(player, interaction, result1, result2);
@@ -50,10 +51,25 @@ const command: Command = {
             const { boardEmbed, boardImg } = await buildBoard(interaction, game.players!, result1, result2);
             const response = await sendBoardResponse(interaction, boardEmbed, boardImg);
 
-            const actionEmbeds: EmbedBuilder[] = await handleSquareAction(player, interaction);
-            await checkDoubleRollStreak(result1 === result2, player, actionEmbeds[0]);
+            let followUpEmbeds: EmbedBuilder[] = [];
 
-            interaction.followUp({ embeds: actionEmbeds });
+            if (hasRolledDoublesThriceInARow(result1 === result2, player)) {
+                const doubleTroubleEmbed = buildTemplateEmbed(interaction)
+                    .setTitle('You rolled doubles 3 times in a row.')
+                    .setDescription('You are going to jail for the next \`3\` turns. You can get out of jail by paying `50$`, rolling doubles, or using a `Get out of Jail Card`');
+                
+                await goToJail(player);
+                await player.update({ doubleRollStreak: 0 });
+                
+                followUpEmbeds.push(doubleTroubleEmbed);
+            } else {
+                if (result1 === result2) await player.update({ doubleRollStreak: player.get('doubleRollStreak') + 1 });
+                const actionEmbeds: EmbedBuilder[] = await handleSquareAction(player, interaction);
+
+                followUpEmbeds = actionEmbeds;
+            }
+            
+            interaction.followUp({ embeds: followUpEmbeds });
 
             await concludeTurn(interaction, response, game, playerTurn);
         } catch (error: any) {
@@ -62,18 +78,10 @@ const command: Command = {
     },
 };
 
-async function checkDoubleRollStreak(doubles: boolean, player: Player, actionEmbed: EmbedBuilder) {
-    if (doubles) {
-        const newDoubleRollStreak = player.get('doubleRollStreak') + 1;
+function hasRolledDoublesThriceInARow(doubles: boolean, player: Player) {
+    if (!doubles) return false;
 
-        if (newDoubleRollStreak === 3) {
-            actionEmbed.setTitle('You rolled doubles 3 times in a row.');
-            await goToJail(player);
-            actionEmbed.setDescription('You are going to jail for the next \`3\` turns. You can get out of jail by paying `50$`, rolling doubles, or using a `Get out of Jail Card`');
-        } else {
-            await player.update({ doubleRollStreak: newDoubleRollStreak });
-        }
-    } else await player.update({ doubleRollStreak: 0 });
+    return player.get('doubleRollStreak') === 2;
 }
 
 async function getCurrentGameOrFail(guildId: string): Promise<Game> {
