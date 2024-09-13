@@ -7,6 +7,7 @@ import { Player } from "../tables/Player";
 import { Square } from "../tables/Square";
 import { Turn } from "../tables/Turn";
 import fs from 'node:fs';
+import { Property } from "../tables/Property";
 
 
 export async function setupDatabase() {
@@ -54,5 +55,21 @@ function setupDatabaseAssociations() {
     });
     Square.hasMany(Player, {
         foreignKey: 'current_square'
+    });
+
+    // Property-Player 1:N
+    Player.hasMany(Property, {
+        foreignKey: 'owner'
+    });
+    Property.hasOne(Player, {
+        foreignKey: 'owner'
+    });
+
+    // Property-Game 1:N
+    Game.hasMany(Property, {
+        foreignKey: 'gameId'
+    });
+    Property.hasOne(Game, {
+        foreignKey: 'gameId'
     });
 }
