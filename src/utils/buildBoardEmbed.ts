@@ -1,8 +1,8 @@
 import { CommandInteraction, EmbedBuilder } from "discord.js";
 import { buildTemplateEmbed } from "./buildTemplateEmbed";
 
-export const buildBoardEmbed = (interaction: CommandInteraction): EmbedBuilder => {
-    const boardEmbed = buildTemplateEmbed(interaction)
+export const buildBoardEmbed = (): EmbedBuilder => {
+    const boardEmbed = buildTemplateEmbed()
         .setImage('attachment://board.png')
         
     return boardEmbed;

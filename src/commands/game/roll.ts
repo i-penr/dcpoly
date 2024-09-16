@@ -54,7 +54,7 @@ const command: Command = {
             let followUpEmbeds: EmbedBuilder[] = [];
 
             if (hasRolledDoublesThriceInARow(result1 === result2, player)) {
-                const doubleTroubleEmbed = buildTemplateEmbed(interaction)
+                const doubleTroubleEmbed = buildTemplateEmbed()
                     .setTitle('You rolled doubles 3 times in a row.')
                     .setDescription('You are going to jail for the next \`3\` turns. You can get out of jail by paying `50$`, rolling doubles, or using a `Get out of Jail Card`');
                 
@@ -114,7 +114,7 @@ async function executePlayerMove(player: Player, playerTurn: Turn, squaresMoved:
 
 async function buildBoard(interaction: CommandInteraction, players: Player[], result1: number, result2: number) {
     const boardImg = await drawBoard(interaction, players);
-    const boardEmbed = buildBoardEmbed(interaction)
+    const boardEmbed = buildBoardEmbed()
         .setAuthor({ name: `${interaction.user.displayName}'s turn`, iconURL: interaction.user.avatarURL()! })
         .setTitle(`${interaction.user.username} rolled a **${result1}** and a **${result2}**`);
 
@@ -138,7 +138,7 @@ async function sendBoardResponse(interaction: CommandInteraction, boardEmbed: Em
 
 async function handleSquareAction(player: Player, interaction: CommandInteraction): Promise<EmbedBuilder[]> {
     const square = await Square.findOne({ where: { id: player.get('current_square') } });
-    let actionEmbed = buildBoardEmbed(interaction).setTitle(`You landed on ${square?.get('name')}`);
+    let actionEmbed = buildBoardEmbed().setTitle(`You landed on ${square?.get('name')}`);
     let embeds = [actionEmbed];
 
     if (!square) return embeds;
@@ -172,6 +172,8 @@ async function handleSquareAction(player: Player, interaction: CommandInteractio
                 actionEmbed.setDescription('You take a `Chance Card` from the deck...');
                 embeds.push(cardEmbed);
             }
+            break;
+        case 'property':
             break;
     }
 

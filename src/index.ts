@@ -45,3 +45,5 @@ for (const folder of commandFolders) {
 }
 
 client.login(process.env.TOKEN);
+
+export { client };

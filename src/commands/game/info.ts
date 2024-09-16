@@ -37,7 +37,7 @@ const command: Command = {
 }
 
 function buildInfoEmbed(player: Player, interaction: CommandInteraction, players: Player[]) {
-    const infoEmbed = buildTemplateEmbed(interaction)
+    const infoEmbed = buildTemplateEmbed()
             .setTitle(`${interaction.user.username}'s info`)
             .setThumbnail(interaction.user.avatarURL())
             .addFields(
