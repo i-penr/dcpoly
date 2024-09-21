@@ -1,23 +1,22 @@
-import { CommandInteraction } from "discord.js";
 import { buildTemplateEmbed } from "../buildTemplateEmbed";
 import { Player } from "../../db/tables/Player";
 import { Game } from "../../db/tables/Game";
 import { goToJail } from "./goToJail";
-import { buildErrorEmbed } from "../buildErrorEmbedResponse";
 import fs from 'node:fs';
 import path from "node:path";
 import Card from "../../models/interfaces/Card";
+import { client } from "../..";
 
 
-export async function useCard(interaction: CommandInteraction, player: Player) {
+export async function useCard(player: Player) {
     try {
         const cards = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'data', 'cards.json'), 'utf-8'));
         const randomCard: Card = cards[Math.floor(Math.random() * cards.length)]!;
         const money = randomCard.money ?? 0;
-        let cardEmbed = buildTemplateEmbed(interaction)
+        let cardEmbed = buildTemplateEmbed()
             .setTitle(randomCard.title)
             .setDescription(randomCard.description)
-            .setAuthor({ name: 'Chance card', iconURL: interaction.client.user.avatarURL()! })
+            .setAuthor({ name: 'Chance card', iconURL: client.user!.avatarURL()! })
             .setColor('Purple');
 
         if (randomCard.givesJailCard) {
@@ -66,6 +65,5 @@ export async function useCard(interaction: CommandInteraction, player: Player) {
         return cardEmbed;
     } catch (err: any) {
         console.error('Error using card:', err);
-        await interaction.followUp(buildErrorEmbed(interaction, 'Something went wrong using this card!'));
     }
 }
