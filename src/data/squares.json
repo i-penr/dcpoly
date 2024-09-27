@@ -9,9 +9,7 @@
         "id": 1,
         "name": "Brown 1",
         "type": "property",
-        "rent": 2,
-        "price": 60,
-        "mortgage": 30
+        "rent": 2
     },
     {
         "id": 2,
@@ -23,9 +21,7 @@
         "id": 3,
         "name": "Brown 2",
         "type": "property",
-        "rent": 4,
-        "price": 60,
-        "mortgage": 30
+        "rent": 4
     },
     {
         "id": 4,

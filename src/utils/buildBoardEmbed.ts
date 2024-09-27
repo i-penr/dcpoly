@@ -1,4 +1,4 @@
-import { CommandInteraction, EmbedBuilder } from "discord.js";
+import { EmbedBuilder } from "discord.js";
 import { buildTemplateEmbed } from "./buildTemplateEmbed";
 
 export const buildBoardEmbed = (): EmbedBuilder => {

@@ -61,7 +61,7 @@ function setupDatabaseAssociations() {
     Player.hasMany(Property, {
         foreignKey: 'owner'
     });
-    Property.hasOne(Player, {
+    Property.belongsTo(Player, {
         foreignKey: 'owner'
     });
 
@@ -69,7 +69,7 @@ function setupDatabaseAssociations() {
     Game.hasMany(Property, {
         foreignKey: 'gameId'
     });
-    Property.hasOne(Game, {
+    Property.belongsTo(Game, {
         foreignKey: 'gameId'
     });
 }

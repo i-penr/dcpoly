@@ -5,8 +5,7 @@ import { goToJail } from "./goToJail";
 import fs from 'node:fs';
 import path from "node:path";
 import Card from "../../models/interfaces/Card";
-import { client } from "../..";
-
+import Client from "../../models/classes/Client";
 
 export async function useCard(player: Player) {
     try {
@@ -16,7 +15,7 @@ export async function useCard(player: Player) {
         let cardEmbed = buildTemplateEmbed()
             .setTitle(randomCard.title)
             .setDescription(randomCard.description)
-            .setAuthor({ name: 'Chance card', iconURL: client.user!.avatarURL()! })
+            .setAuthor({ name: 'Chance card', iconURL: Client.getInstance().user!.avatarURL()! })
             .setColor('Purple');
 
         if (randomCard.givesJailCard) {

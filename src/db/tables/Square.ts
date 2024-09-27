@@ -3,9 +3,7 @@ import { sequelize } from "../db";
 
 interface Square extends Model<InferAttributes<Square>, InferCreationAttributes<Square>> {
     id: number;
-    price: CreationOptional<number>;
     rent: number;
-    mortgage: CreationOptional<number>
     name: string;
     type: 'property' | 'station' | 'card' | 'special' | 'start' | 'jail' | 'visit_jail' | 'free_space' | 'small_tax' | 'big_tax';
 }
@@ -16,17 +14,9 @@ const Square = sequelize.define<Square>('squares', {
     type: DataTypes.TINYINT,
     primaryKey: true
    },
-   price: {
-    type: DataTypes.SMALLINT,
-    allowNull: true
-   },
    rent: {
     type: DataTypes.SMALLINT,
     allowNull: false
-   },
-   mortgage: {
-    type: DataTypes.SMALLINT,
-    allowNull: true
    },
    name: {
     type: DataTypes.STRING(20)

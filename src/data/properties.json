@@ -1,0 +1,14 @@
+[
+    {
+        "id": 1,
+        "price": 60,
+        "mortgage": 30,
+        "color": "DarkOrange"
+    },
+    {
+        "id": 3,
+        "price": 60,
+        "mortgage": 30,
+        "color": "DarkOrange"
+    }
+]

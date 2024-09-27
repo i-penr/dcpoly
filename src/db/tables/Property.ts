@@ -5,15 +5,17 @@ import { User } from "./User";
 import { Game } from "./Game";
 
 interface Property extends Model<InferAttributes<Property>, InferCreationAttributes<Property>> {
-    number: ForeignKey<Square['id']>;
+    id: ForeignKey<Square['id']>;
     gameId: ForeignKey<Game['id']>;
     owner: ForeignKey<User['id']>;
-    currentRent: CreationOptional<number>;
-    color: 'red' | 'pink' | 'yellow' | 'light_blue' | 'dark_blue' | 'green' | 'brown' | 'orange';
+    price: CreationOptional<number>;
+    mortgage: CreationOptional<number>;
+    color: 'Red' | 'LuminousVividPink' | 'Yellow' | 'Blue' | 'DarkBlue' | 'Green' | 'DarkOrange' | 'Orange';
+    square: NonAttribute<Square>;
 }
 
 const Property = sequelize.define<Property>('properties', {
-    number: {
+    id: {
         type: DataTypes.TINYINT,
         references: {
             model: Square,
@@ -37,10 +39,6 @@ const Property = sequelize.define<Property>('properties', {
         },
         allowNull: true
     },
-    currentRent: {
-        type: DataTypes.SMALLINT,
-        allowNull: false,
-    },
     color: {
         type: DataTypes.STRING(10),
         validate: {
@@ -48,6 +46,14 @@ const Property = sequelize.define<Property>('properties', {
         },
         allowNull: false
     },
+    price: {
+        type: DataTypes.SMALLINT,
+        allowNull: false
+    },
+    mortgage: {
+        type: DataTypes.SMALLINT,
+        allowNull: false
+    }
 }, { timestamps: false });
 
 export { Property };

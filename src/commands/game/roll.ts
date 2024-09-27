@@ -1,10 +1,8 @@
 import {
     ActionRowBuilder,
-    AttachmentBuilder,
     ButtonBuilder,
     ButtonStyle,
     CommandInteraction,
-    EmbedBuilder,
     Interaction,
     SlashCommandBuilder,
 } from "discord.js";
@@ -26,6 +24,10 @@ import { rollDices } from "../../utils/actions/rollDices";
 import { goToJail } from "../../utils/actions/goToJail";
 import { useCard } from "../../utils/actions/cardTurn";
 import { buildTemplateEmbed } from "../../utils/buildTemplateEmbed";
+import { createPropertyPromptActionRow, getPropertyFromStatic } from "../../utils/actions/propertyTurn";
+import { Property } from "../../db/tables/Property";
+import Client from "../../models/classes/Client"
+import DiscordResponse from "../../models/classes/DiscordResponse";
 
 const command: Command = {
     data: new SlashCommandBuilder()
@@ -46,30 +48,37 @@ const command: Command = {
                 if (!continuesPlaying) return;
             }
 
-            await executePlayerMove(player, playerTurn, result1 + result2);
+            const squareNumber = await executePlayerMove(player, playerTurn, result1 + result2);
+            const square = await Square.findOne({ where: { id: squareNumber } });
 
-            const { boardEmbed, boardImg } = await buildBoard(interaction, game.players!, result1, result2);
-            const response = await sendBoardResponse(interaction, boardEmbed, boardImg);
+            let responseBuilder = new DiscordResponse();
 
-            let followUpEmbeds: EmbedBuilder[] = [];
+            const endTurnButton = new ButtonBuilder()
+                .setCustomId('endTurn')
+                .setLabel('End Turn')
+                .setStyle(ButtonStyle.Danger);
 
             if (hasRolledDoublesThriceInARow(result1 === result2, player)) {
-                const doubleTroubleEmbed = buildTemplateEmbed()
+                const doubleTroubleEmbed = buildBoardEmbed()
                     .setTitle('You rolled doubles 3 times in a row.')
-                    .setDescription('You are going to jail for the next \`3\` turns. You can get out of jail by paying `50$`, rolling doubles, or using a `Get out of Jail Card`');
-                
+                    .setDescription('You are going to jail for the next \`3\` turns. You can get out of jail by paying `50$`, rolling doubles, or using a `Get out of Jail Card`')
+                    .setColor('Orange');
+
                 await goToJail(player);
                 await player.update({ doubleRollStreak: 0 });
-                
-                followUpEmbeds.push(doubleTroubleEmbed);
+
+                responseBuilder.embeds.push(doubleTroubleEmbed);
             } else {
                 if (result1 === result2) await player.update({ doubleRollStreak: player.get('doubleRollStreak') + 1 });
-                const actionEmbeds: EmbedBuilder[] = await handleSquareAction(player, interaction);
-
-                followUpEmbeds = actionEmbeds;
+                responseBuilder = await handleSquareAction(player, square!);
             }
+
+            responseBuilder.actionRow.addComponents(endTurnButton);
+
+            const boardImg = await drawBoard(game.players!);
             
-            interaction.followUp({ embeds: followUpEmbeds });
+            const response = await interaction.reply({ embeds: responseBuilder.embeds, components: [responseBuilder.actionRow], files: [boardImg], 
+                content: `You rolled a \`${result1}\` and a \`${result2}\` 🎲` });
 
             await concludeTurn(interaction, response, game, playerTurn);
         } catch (error: any) {
@@ -105,82 +114,80 @@ async function validateTurn(game: Game, playerTurn: Turn): Promise<void> {
     if (await playerHasRolled(playerTurn)) throw new Error('You have already rolled. Finish your turn by clicking the `End Turn` button');
 }
 
-async function executePlayerMove(player: Player, playerTurn: Turn, squaresMoved: number): Promise<void> {
+async function executePlayerMove(player: Player, playerTurn: Turn, squaresMoved: number): Promise<number> {
     const newSquare = (squaresMoved + player.get('current_square')) % 40;
 
     await player.update({ current_square: newSquare });
     await playerTurn.update({ hasRolled: true });
+
+    return newSquare;
 }
 
-async function buildBoard(interaction: CommandInteraction, players: Player[], result1: number, result2: number) {
-    const boardImg = await drawBoard(interaction, players);
+async function handleSquareAction(player: Player, square: Square): Promise<DiscordResponse> {
+    const responseBuilder = new DiscordResponse();
     const boardEmbed = buildBoardEmbed()
-        .setAuthor({ name: `${interaction.user.displayName}'s turn`, iconURL: interaction.user.avatarURL()! })
-        .setTitle(`${interaction.user.username} rolled a **${result1}** and a **${result2}**`);
+        .setTitle(`You landed on \`${square.name}\``);
 
-    return { boardEmbed, boardImg };
-}
-
-async function sendBoardResponse(interaction: CommandInteraction, boardEmbed: EmbedBuilder, boardImg: AttachmentBuilder) {
-    const endTurnButton = new ButtonBuilder()
-        .setCustomId('endTurn')
-        .setLabel('End Turn')
-        .setStyle(ButtonStyle.Danger);
-
-    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(endTurnButton);
-
-    if (!interaction.replied) {
-        return await interaction.reply({ embeds: [boardEmbed], files: [boardImg], components: [row] });
-    } else {
-        return await interaction.followUp({ embeds: [boardEmbed], files: [boardImg], components: [row] });
-    }
-}
-
-async function handleSquareAction(player: Player, interaction: CommandInteraction): Promise<EmbedBuilder[]> {
-    const square = await Square.findOne({ where: { id: player.get('current_square') } });
-    let actionEmbed = buildBoardEmbed().setTitle(`You landed on ${square?.get('name')}`);
-    let embeds = [actionEmbed];
-
-    if (!square) return embeds;
-
-    switch (square.get('type')) {
+    switch (square!.get('type')) {
         case 'small_tax':
             await player.update({ money: player.get('money') - 100 });
-            actionEmbed.setDescription('You paid `100$` to the bank');
+            boardEmbed.setDescription('You paid `100$` to the bank');
             break;
         case 'big_tax':
             await player.update({ money: player.get('money') - 200 });
-            actionEmbed.setDescription('You paid `200$` to the bank');
+            boardEmbed.setDescription('You paid `200$` to the bank');
             break;
         case 'visit_jail':
-            actionEmbed.setDescription('Don\'t worry, you are just visiting');
+            boardEmbed.setDescription('Don\'t worry, you are just visiting');
             break;
         case 'free_space':
-            actionEmbed.setDescription('Just take a break.');
+            boardEmbed.setDescription('Just take a break.');
             break;
         case 'start':
             await player.update({ money: player.get('money') + 200 });
-            actionEmbed.setDescription('You earned `200$` for completing a lap!');
+            boardEmbed.setDescription('You earned `200$` for completing a lap!');
             break;
         case 'jail':
             await goToJail(player);
-            actionEmbed.setDescription('You are going to jail for the next \`3\` turns. You can get out of jail by paying `50$`, rolling doubles, or using a `Get out of Jail Card`');
+            boardEmbed.setDescription('You are going to jail for the next \`3\` turns. You can get out of jail by paying `50$`, rolling doubles, or using a `Get out of Jail Card`');
             break;
         case 'card':
-            const cardEmbed = await useCard(interaction, player);
+            const cardEmbed = await useCard(player);
             if (cardEmbed) {
-                actionEmbed.setDescription('You take a `Chance Card` from the deck...');
-                embeds.push(cardEmbed);
+                boardEmbed.setDescription('You take a `Chance Card` from the deck...');
+                responseBuilder.embeds.push(cardEmbed);
             }
             break;
         case 'property':
+            let property = await Property.findOne({ where: { gameId: player.gameId, id: square.id } });
+
+            if (!property) {
+                property = getPropertyFromStatic(square);
+                boardEmbed.setDescription('What do you want to do?');
+                responseBuilder.actionRow.addComponents(createPropertyPromptActionRow());
+
+                break;
+            }
+
+            const owner = await Player.findOne({ where: { userId: property.owner, gameId: player.gameId } });
+            boardEmbed.setColor(property.color);
+
+            if (player.userId === owner!.userId) {
+                boardEmbed.setDescription(`This property is owned by you. Enjoy your stay!`);
+            } else {
+                boardEmbed.setDescription(`This property is owned by ${Client.getInstance().users.cache.get(property.owner)}.
+                    You will need to pay them \`${square.rent}\`$ for rent.`);
+
+                await player.update({ money: player.money - square.rent });
+                await owner!.update({ money: owner!.money + square.rent });
+            }
             break;
     }
 
-    return embeds;
+    responseBuilder.embeds.unshift(boardEmbed);
+
+    return responseBuilder;
 }
-
-
 
 async function concludeTurn(interaction: CommandInteraction, response: any, game: Game, playerTurn: Turn): Promise<void> {
     try {
@@ -190,11 +197,11 @@ async function concludeTurn(interaction: CommandInteraction, response: any, game
         });
 
         if (confirmation.customId === 'endTurn') {
-            await updateTurn(game, playerTurn);
             await confirmation.update({ content: '***TURN ENDED***', components: [] });
         }
     } catch {
         await response.edit({ content: '***TURN ENDED***', components: [] })
+    } finally {
         await updateTurn(game, playerTurn);
     }
 }
@@ -215,7 +222,11 @@ async function playerHasRolled(playerTurn: Turn): Promise<boolean> {
 }
 
 function handleCommandError(interaction: CommandInteraction, error: Error): void {
-    interaction.reply({ ...buildErrorEmbed(interaction, error.message), ephemeral: true });
+    if (interaction.replied) {
+        interaction.followUp({ ...buildErrorEmbed(interaction, error.message), ephemeral: true });
+    } else {
+        interaction.reply({ ...buildErrorEmbed(interaction, error.message), ephemeral: true });
+    }
 }
 
 export { command };
