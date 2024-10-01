@@ -9,7 +9,6 @@ import Command from "../../models/interfaces/Command";
 import { buildBoardEmbed } from "../../utils/buildBoardEmbed";
 import { drawBoard } from "../../utils/drawBoard";
 import { buildErrorEmbed } from "../../utils/buildErrorEmbedResponse";
-import { getGameFromGuildWithStatus } from "../../utils/database";
 import { promptJailActionAndCheckIfPlays } from "../../utils/actions/jailTurn";
 import { Player } from "../../db/tables/Player";
 import { Game } from "../../db/tables/Game";
@@ -22,6 +21,7 @@ import { createPropertyPromptActionRow, getPropertyFromStatic } from "../../util
 import { Property } from "../../db/tables/Property";
 import Client from "../../models/classes/Client"
 import DiscordResponse from "../../models/classes/DiscordResponse";
+import { getCurrentGameOrFail, getPlayerOrFail, getPlayerTurn, handleCommandError, validateTurn } from "../../utils/validations";
 
 const command: Command = {
     data: new SlashCommandBuilder()
@@ -86,29 +86,6 @@ const command: Command = {
 
 function hasRolledDoublesThriceInARow(doubles: boolean, player: Player) {
     return doubles && player.get('doubleRollStreak') === 2;
-}
-
-async function getCurrentGameOrFail(guildId: string): Promise<Game> {
-    const game = await getGameFromGuildWithStatus(guildId, 'active');
-    if (!game) throw new Error('There are no **active** games on this server. Create a game with `/newgame`');
-    return game;
-}
-
-function getPlayerOrFail(game: Game, userId: string): Player {
-    const player = game.players?.find((p) => p.userId === userId);
-    if (!player) throw new Error(`User is not registered in the current game. Run \`/register\` to join game ${game.get('id')}`);
-    return player;
-}
-
-async function getPlayerTurn(game: Game, player: Player): Promise<Turn> {
-    const playerTurn = await Turn.findOne({ where: { gameId: game.get('id'), userId: player.get('userId') } });
-    if (!playerTurn) throw new Error('Unable to find player\'s turn data');
-    return playerTurn;
-}
-
-async function validateTurn(game: Game, playerTurn: Turn): Promise<void> {
-    if (!await isPlayersTurn(game, playerTurn)) throw new Error('It is not your turn');
-    if (await playerHasRolled(playerTurn)) throw new Error('You have already rolled. Finish your turn by clicking the `End Turn` button');
 }
 
 async function executePlayerMove(player: Player, playerTurn: Turn, squaresMoved: number): Promise<number> {
@@ -213,24 +190,6 @@ async function updateTurn(game: Game, playerTurn: Turn): Promise<void> {
     const nextTurn = (game.get('currentTurn') + 1) % game.get('players')!.length;
     await game.update({ currentTurn: nextTurn });
     await playerTurn.update({ hasRolled: false });
-}
-
-async function isPlayersTurn(game: Game, playerTurn: Turn): Promise<boolean> {
-    const currentTurn = game.get('currentTurn');
-    return (currentTurn % game.get('players')!.length) === playerTurn.get('playerOrder');
-}
-
-async function playerHasRolled(playerTurn: Turn): Promise<boolean> {
-    return playerTurn.get('hasRolled');
-}
-
-function handleCommandError(interaction: CommandInteraction, error: Error): void {
-    interaction.followUp({ ...buildErrorEmbed(interaction, error.message) });
-
-    // Ephemeral responses don't work with non-ephemeral deferred responses, so just delete it manually
-    setTimeout(async () => {
-        (await interaction.fetchReply()).delete();
-    }, 4000);
 }
 
 export { command };

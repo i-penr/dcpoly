@@ -1,35 +1,40 @@
-import { Client, CommandInteraction, SlashCommandBuilder} from 'discord.js';
+import { Client, CommandInteraction, SlashCommandBuilder } from 'discord.js';
 import Command from '../../models/interfaces/Command';
 import { buildBoardEmbed } from '../../utils/buildBoardEmbed';
 import { drawBoard } from '../../utils/drawBoard';
 import { getGameFromGuildWithStatus } from '../../utils/database';
 import { buildErrorEmbed } from '../../utils/buildErrorEmbedResponse';
 import { Player } from '../../db/tables/Player';
+import { getCurrentGameOrFail, handleCommandError } from '../../utils/validations';
 
 const command: Command = {
     data: new SlashCommandBuilder()
-            .setName('board')
-            .setDescription('Shows the board of the current active game on the server.'),
+        .setName('board')
+        .setDescription('Shows the board of the current active game on the server.'),
     async execute(interaction: CommandInteraction) {
-        const game = await getGameFromGuildWithStatus(interaction.guildId!, 'active');
+        try {
+            const game = await getCurrentGameOrFail(interaction.guildId!);
 
-        if (!game) {
-            interaction.reply(buildErrorEmbed(interaction, 'There are no current active games on the server.'));
-            return;
+            if (!game) {
+                interaction.reply(buildErrorEmbed(interaction, 'There are no current active games on the server.'));
+                return;
+            }
+
+            const boardImg = await drawBoard(game.players ?? []);
+            const boardEmbed = buildBoardEmbed()
+                .setThumbnail(interaction.guild?.iconURL()!)
+                .setTitle(`${interaction.guild?.name}'s board - Game #${game.get('id')}`)
+                .setDescription(await getPlayerPositionString(game.get('id'), interaction.client));
+
+            interaction.reply({ embeds: [boardEmbed], files: [boardImg] });
+        } catch (error: any) {
+            handleCommandError(interaction, error);
         }
-
-        const boardImg = await drawBoard(game.players ?? []);
-        const boardEmbed = buildBoardEmbed()
-            .setThumbnail(interaction.guild?.iconURL()!)
-            .setTitle(`${interaction.guild?.name}'s board - Game #${game.get('id')}`)
-            .setDescription(await getPlayerPositionString(game.get('id'), interaction.client));
-        
-        interaction.reply({ embeds: [boardEmbed], files: [boardImg] });
     },
 }
 
 async function getPlayerPositionString(gameId: number, client: Client) {
-    const players = await Player.findAll({ where: { gameId: gameId }});
+    const players = await Player.findAll({ where: { gameId: gameId } });
     let playerPositions = '';
 
     for (let player of players) {
@@ -41,4 +46,4 @@ async function getPlayerPositionString(gameId: number, client: Client) {
     return playerPositions;
 }
 
-export  { command };
+export { command };
