@@ -1,5 +1,4 @@
 import {
-    ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
     CommandInteraction,
@@ -7,15 +6,11 @@ import {
     SlashCommandBuilder,
 } from "discord.js";
 import Command from "../../models/interfaces/Command";
-
-// Utility Imports
 import { buildBoardEmbed } from "../../utils/buildBoardEmbed";
 import { drawBoard } from "../../utils/drawBoard";
 import { buildErrorEmbed } from "../../utils/buildErrorEmbedResponse";
 import { getGameFromGuildWithStatus } from "../../utils/database";
 import { promptJailActionAndCheckIfPlays } from "../../utils/actions/jailTurn";
-
-// Database/Table Imports
 import { Player } from "../../db/tables/Player";
 import { Game } from "../../db/tables/Game";
 import { Turn } from "../../db/tables/Turn";
@@ -23,7 +18,6 @@ import { Square } from "../../db/tables/Square";
 import { rollDices } from "../../utils/actions/rollDices";
 import { goToJail } from "../../utils/actions/goToJail";
 import { useCard } from "../../utils/actions/cardTurn";
-import { buildTemplateEmbed } from "../../utils/buildTemplateEmbed";
 import { createPropertyPromptActionRow, getPropertyFromStatic } from "../../utils/actions/propertyTurn";
 import { Property } from "../../db/tables/Property";
 import Client from "../../models/classes/Client"
@@ -35,6 +29,7 @@ const command: Command = {
         .setDescription("Rolls the dice!"),
     async execute(interaction: CommandInteraction) {
         try {
+            await interaction.deferReply();
             const game = await getCurrentGameOrFail(interaction.guildId!);
             const player = getPlayerOrFail(game, interaction.user.id);
             const playerTurn = await getPlayerTurn(game, player);
@@ -53,11 +48,6 @@ const command: Command = {
 
             let responseBuilder = new DiscordResponse();
 
-            const endTurnButton = new ButtonBuilder()
-                .setCustomId('endTurn')
-                .setLabel('End Turn')
-                .setStyle(ButtonStyle.Danger);
-
             if (hasRolledDoublesThriceInARow(result1 === result2, player)) {
                 const doubleTroubleEmbed = buildBoardEmbed()
                     .setTitle('You rolled doubles 3 times in a row.')
@@ -73,14 +63,21 @@ const command: Command = {
                 responseBuilder = await handleSquareAction(player, square!);
             }
 
+            const endTurnButton = new ButtonBuilder()
+                .setCustomId('endTurn')
+                .setLabel('End Turn')
+                .setStyle(ButtonStyle.Danger);
             responseBuilder.actionRow.addComponents(endTurnButton);
 
             const boardImg = await drawBoard(game.players!);
-            
-            const response = await interaction.reply({ embeds: responseBuilder.embeds, components: [responseBuilder.actionRow], files: [boardImg], 
-                content: `You rolled a \`${result1}\` and a \`${result2}\` 🎲` });
 
-            await concludeTurn(interaction, response, game, playerTurn);
+            const response = await interaction.editReply({
+                embeds: responseBuilder.embeds, components: [responseBuilder.actionRow], files: [boardImg],
+                content: `You rolled a \`${result1}\` and a \`${result2}\` 🎲`
+            });
+
+            await handleButtonInteractions(interaction, response, responseBuilder);
+            await updateTurn(game, playerTurn);
         } catch (error: any) {
             handleCommandError(interaction, error);
         }
@@ -134,6 +131,7 @@ async function handleSquareAction(player: Player, square: Square): Promise<Disco
             boardEmbed.setDescription('You paid `100$` to the bank');
             break;
         case 'big_tax':
+            console.log('big tax')
             await player.update({ money: player.get('money') - 200 });
             boardEmbed.setDescription('You paid `200$` to the bank');
             break;
@@ -189,20 +187,25 @@ async function handleSquareAction(player: Player, square: Square): Promise<Disco
     return responseBuilder;
 }
 
-async function concludeTurn(interaction: CommandInteraction, response: any, game: Game, playerTurn: Turn): Promise<void> {
+async function handleButtonInteractions(interaction: CommandInteraction, response: any, responseBuilder: DiscordResponse): Promise<void> {
     try {
         const confirmation = await response.awaitMessageComponent({
             filter: (i: Interaction) => i.user.id === interaction.user.id,
             time: 60000,
         });
 
-        if (confirmation.customId === 'endTurn') {
-            await confirmation.update({ content: '***TURN ENDED***', components: [] });
+        switch (confirmation.customId) {
+            case 'buyProperty':
+                console.log('Buy')
+                break;
+            case 'inspectProperty':
+                break;
+            case 'endTurn': default:
+                throw 'Turn Ended';
         }
     } catch {
-        await response.edit({ content: '***TURN ENDED***', components: [] })
-    } finally {
-        await updateTurn(game, playerTurn);
+        responseBuilder.embeds[0].setDescription('***TURN ENDED***');
+        await response.edit({ embeds: responseBuilder.embeds, components: [] });
     }
 }
 
@@ -222,11 +225,12 @@ async function playerHasRolled(playerTurn: Turn): Promise<boolean> {
 }
 
 function handleCommandError(interaction: CommandInteraction, error: Error): void {
-    if (interaction.replied) {
-        interaction.followUp({ ...buildErrorEmbed(interaction, error.message), ephemeral: true });
-    } else {
-        interaction.reply({ ...buildErrorEmbed(interaction, error.message), ephemeral: true });
-    }
+    interaction.followUp({ ...buildErrorEmbed(interaction, error.message) });
+
+    // Ephemeral responses don't work with non-ephemeral deferred responses, so just delete it manually
+    setTimeout(async () => {
+        (await interaction.fetchReply()).delete();
+    }, 4000);
 }
 
 export { command };

@@ -52,10 +52,5 @@ export function createPropertyPromptActionRow() {
         .setLabel('See Property Details')
         .setStyle(ButtonStyle.Primary)
 
-    const ignorePropertyButton = new ButtonBuilder()
-        .setCustomId('ignoreProperty')
-        .setLabel('Don\'t buy')
-        .setStyle(ButtonStyle.Danger)
-
-    return [buyPropertyButton, inspectPropertyButton, ignorePropertyButton];
+    return [buyPropertyButton, inspectPropertyButton];
 }
