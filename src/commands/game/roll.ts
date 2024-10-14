@@ -108,7 +108,6 @@ async function handleSquareAction(player: Player, square: Square): Promise<Disco
             boardEmbed.setDescription('You paid `100$` to the bank');
             break;
         case 'big_tax':
-            console.log('big tax')
             await player.update({ money: player.get('money') - 200 });
             boardEmbed.setDescription('You paid `200$` to the bank');
             break;
@@ -174,13 +173,19 @@ async function handleButtonInteractions(interaction: CommandInteraction, respons
         switch (confirmation.customId) {
             case 'buyProperty':
                 console.log('Buy')
+                responseBuilder.embeds[0].setDescription(`You bought the property #PLACEHOLDER# for #PLACEHOLDER#.`);
+
+                // update money
+
+                confirmation.update({ embeds: responseBuilder.embeds, components: [] });
                 break;
             case 'inspectProperty':
                 break;
             case 'endTurn': default:
                 throw 'Turn Ended';
         }
-    } catch {
+
+     } catch {
         responseBuilder.embeds[0].setDescription('***TURN ENDED***');
         await response.edit({ embeds: responseBuilder.embeds, components: [] });
     }

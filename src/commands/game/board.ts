@@ -2,7 +2,6 @@ import { Client, CommandInteraction, SlashCommandBuilder } from 'discord.js';
 import Command from '../../models/interfaces/Command';
 import { buildBoardEmbed } from '../../utils/buildBoardEmbed';
 import { drawBoard } from '../../utils/drawBoard';
-import { getGameFromGuildWithStatus } from '../../utils/database';
 import { buildErrorEmbed } from '../../utils/buildErrorEmbedResponse';
 import { Player } from '../../db/tables/Player';
 import { getCurrentGameOrFail, handleCommandError } from '../../utils/validations';
