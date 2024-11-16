@@ -29,14 +29,10 @@ const command: Command = {
         .setDescription("Rolls the dice!"),
     async execute(interaction: CommandInteraction) {
         try {
-            await interaction.deferReply();
-            const game = await getCurrentGameOrFail(interaction.guildId!);
-            const player = getPlayerOrFail(game, interaction.user.id);
-            const playerTurn = await getPlayerTurn(game, player);
-
-            await validateTurn(game, playerTurn);
-
+            const { player, playerTurn, game } = await getAndVerifyAll(interaction);
             const { result1, result2 } = rollDices();
+
+            await interaction.deferReply();
 
             if (player.get('jailStatus') !== -1) {
                 const continuesPlaying = await promptJailActionAndCheckIfPlays(player, interaction, result1, result2);
@@ -83,6 +79,15 @@ const command: Command = {
         }
     },
 };
+
+async function getAndVerifyAll(interaction: CommandInteraction) {
+    const game = await getCurrentGameOrFail(interaction.guildId!);
+    const player = getPlayerOrFail(game, interaction.user.id);
+    const playerTurn = await getPlayerTurn(game, player);
+
+    await validateTurn(game, playerTurn);
+    return { player, playerTurn, game };
+}
 
 function hasRolledDoublesThriceInARow(doubles: boolean, player: Player) {
     return doubles && player.get('doubleRollStreak') === 2;

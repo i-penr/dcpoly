@@ -30,12 +30,7 @@ export async function validateTurn(game: Game, playerTurn: Turn): Promise<void> 
 
 export function handleCommandError(interaction: CommandInteraction, error: Error): void {
     if (interaction.replied || interaction.deferred) {
-        interaction.followUp({ ...buildErrorEmbed(interaction, error.message) });
-
-        // Ephemeral responses don't work with non-ephemeral deferred responses, so just delete it manually
-        setTimeout(async () => {
-            (await interaction.fetchReply()).delete();
-        }, 4000);
+        interaction.followUp({ ...buildErrorEmbed(interaction, error.message), ephemeral: true });
     } else {
         interaction.reply({ ...buildErrorEmbed(interaction, error.message), ephemeral: true })
     }
