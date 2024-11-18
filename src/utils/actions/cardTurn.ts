@@ -1,4 +1,4 @@
-import { buildTemplateEmbed } from "../buildTemplateEmbed";
+import { buildTemplateEmbed } from "../embeds/buildTemplateEmbed";
 import { Player } from "../../db/tables/Player";
 import { Game } from "../../db/tables/Game";
 import { goToJail } from "./goToJail";

@@ -1,5 +1,5 @@
 import { EmbedBuilder } from "discord.js";
-import Client from "../models/classes/Client";
+import Client from "../../models/classes/Client";
 
 export const buildTemplateEmbed = (): EmbedBuilder => {
     const boardEmbed = new EmbedBuilder()

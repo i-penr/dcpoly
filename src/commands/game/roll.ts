@@ -3,12 +3,10 @@ import {
     ButtonStyle,
     CommandInteraction,
     ComponentType,
-    Interaction,
-    Message,
     SlashCommandBuilder,
 } from "discord.js";
 import Command from "../../models/interfaces/Command";
-import { buildBoardEmbed } from "../../utils/buildBoardEmbed";
+import { buildBoardEmbed } from "../../utils/embeds/buildBoardEmbed";
 import { drawBoard } from "../../utils/drawBoard";
 import { promptJailActionAndCheckIfPlays } from "../../utils/actions/jailTurn";
 import { Player } from "../../db/tables/Player";
@@ -18,13 +16,12 @@ import { Square } from "../../db/tables/Square";
 import { rollDices } from "../../utils/actions/rollDices";
 import { goToJail } from "../../utils/actions/goToJail";
 import { useCard } from "../../utils/actions/cardTurn";
-import { createPropertyPromptActionRow, getPropertyFromStatic } from "../../utils/actions/propertyTurn";
+import { createPropertyPromptActionRow } from "../../utils/actions/propertyTurn";
 import { Property } from "../../db/tables/Property";
 import Client from "../../models/classes/Client"
 import DiscordResponse from "../../models/classes/DiscordResponse";
 import { getCurrentGameOrFail, getPlayerOrFail, getPlayerTurn, handleCommandError, validateTurn } from "../../utils/validations";
-import { Sequelize } from "sequelize";
-import { buildTemplateEmbed } from "../../utils/buildTemplateEmbed";
+import { buildPropertyEmbed } from "../../utils/embeds/buildPropertyEmbed";
 
 const command: Command = {
     data: new SlashCommandBuilder()
@@ -192,17 +189,7 @@ async function handleButtonInteractions(interaction: CommandInteraction, respons
                     const property = await Property.findOne({ where: { id: square.id } });
                     if (!property) throw 'Inspect Property Error';
 
-                    const embed = buildTemplateEmbed()
-                        .setColor(property.color)
-                        .setTitle(square.name)
-                        .setDescription(`- **Price**: \`${property.price}\`$\n- **Base rent**: \`${square.rent}\`$\n- **Owned by**: ${property.owner ? await Client.getInstance().users.fetch(property.owner): 'Nobody'}`)
-                        .addFields([
-                            { name: 'Rent with 1 building', value: 'PLACEHOLDER', inline: true },
-                            { name: 'Rent with 2 buildings', value: 'PLACEHOLDER', inline: true },
-                            { name: 'Rent with 3 buildings', value: 'PLACEHOLDER', inline: true },
-                            { name: 'Rent with 4 buildings', value: 'PLACEHOLDER', inline: true },
-                            { name: 'Rent with 1 hotel', value: 'PLACEHOLDER', inline: true },
-                        ]);
+                    const embed = await buildPropertyEmbed(property, square);
                         
                     interaction.followUp({ embeds: [embed] });
                     await responseBuilder.response?.edit({ embeds: responseBuilder.embeds });

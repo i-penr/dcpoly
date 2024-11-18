@@ -1,7 +1,7 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
+import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { Property } from "../../db/tables/Property";
 import { Square } from "../../db/tables/Square";
-import { buildTemplateEmbed } from "../buildTemplateEmbed";
+import { buildTemplateEmbed } from "../embeds/buildTemplateEmbed";
 import fs from 'node:fs';
 import path from "node:path";
 

@@ -1,9 +1,8 @@
 import { CommandInteraction, SlashCommandBuilder, User } from 'discord.js';
 import Command from '../../models/interfaces/Command';
-import { getGameFromGuildWithStatus } from '../../utils/database';
-import { buildErrorEmbed } from '../../utils/buildErrorEmbedResponse';
+import { buildErrorEmbed } from '../../utils/embeds/buildErrorEmbedResponse';
 import { Player } from '../../db/tables/Player';
-import { buildTemplateEmbed } from '../../utils/buildTemplateEmbed';
+import { buildTemplateEmbed } from '../../utils/embeds/buildTemplateEmbed';
 import { getCurrentGameOrFail, handleCommandError } from '../../utils/validations';
 
 const command: Command = {

@@ -2,7 +2,7 @@ import { CommandInteraction, SlashCommandBuilder} from "discord.js";
 import Command from '../../models/interfaces/Command';
 import { Game } from "../../db/tables/Game";
 import { Op } from "sequelize";
-import { buildErrorEmbed } from "../../utils/buildErrorEmbedResponse";
+import { buildErrorEmbed } from "../../utils/embeds/buildErrorEmbedResponse";
 import { getGameFromGuildWithStatus } from "../../utils/database";
 
 const command: Command = {

@@ -2,7 +2,7 @@ import { CommandInteraction } from "discord.js";
 import { Game } from "../db/tables/Game";
 import { Player } from "../db/tables/Player";
 import { Turn } from "../db/tables/Turn";
-import { buildErrorEmbed } from "./buildErrorEmbedResponse";
+import { buildErrorEmbed } from "./embeds/buildErrorEmbedResponse";
 import { getGameFromGuildWithStatus } from "./database";
 
 export async function getCurrentGameOrFail(guildId: string): Promise<Game> {
