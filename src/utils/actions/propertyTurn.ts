@@ -5,9 +5,12 @@ import { buildTemplateEmbed } from "../buildTemplateEmbed";
 import fs from 'node:fs';
 import path from "node:path";
 
+export function getProperties() {
+    return JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'data', 'properties.json'), 'utf-8'));
+}
+
 export function getPropertyFromStatic(square: Square) {
-    const propertiesStatic = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'data', 'properties.json'), 'utf-8'));
-    return propertiesStatic.find((p: any) => p.id = square.id);
+    return getProperties().find((p: any) => p.id = square.id);
 }
 
 export async function generatePropertyEmbed(property: Property): Promise<EmbedBuilder> {
@@ -41,11 +44,12 @@ export async function generatePropertyEmbed(property: Property): Promise<EmbedBu
     return purchaseEmbed;
 }
 
-export function createPropertyPromptActionRow() {
+export function createPropertyPromptActionRow(playerHasMoney: boolean) {
     const buyPropertyButton = new ButtonBuilder()
         .setCustomId('buyProperty')
         .setLabel('Buy')
-        .setStyle(ButtonStyle.Success);
+        .setStyle(ButtonStyle.Success)
+        .setDisabled(!playerHasMoney);
 
     const inspectPropertyButton = new ButtonBuilder()
         .setCustomId('inspectProperty')

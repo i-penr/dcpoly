@@ -64,6 +64,12 @@ function setupDatabaseAssociations() {
     Property.belongsTo(Player, {
         foreignKey: 'owner'
     });
+    Player.hasMany(Property, {
+        foreignKey: 'gameId'
+    });
+    Property.belongsTo(Player, {
+        foreignKey: 'gameId'
+    });
 
     // Property-Game 1:N
     Game.hasMany(Property, {

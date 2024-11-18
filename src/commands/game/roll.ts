@@ -2,13 +2,14 @@ import {
     ButtonBuilder,
     ButtonStyle,
     CommandInteraction,
+    ComponentType,
     Interaction,
+    Message,
     SlashCommandBuilder,
 } from "discord.js";
 import Command from "../../models/interfaces/Command";
 import { buildBoardEmbed } from "../../utils/buildBoardEmbed";
 import { drawBoard } from "../../utils/drawBoard";
-import { buildErrorEmbed } from "../../utils/buildErrorEmbedResponse";
 import { promptJailActionAndCheckIfPlays } from "../../utils/actions/jailTurn";
 import { Player } from "../../db/tables/Player";
 import { Game } from "../../db/tables/Game";
@@ -22,6 +23,8 @@ import { Property } from "../../db/tables/Property";
 import Client from "../../models/classes/Client"
 import DiscordResponse from "../../models/classes/DiscordResponse";
 import { getCurrentGameOrFail, getPlayerOrFail, getPlayerTurn, handleCommandError, validateTurn } from "../../utils/validations";
+import { Sequelize } from "sequelize";
+import { buildTemplateEmbed } from "../../utils/buildTemplateEmbed";
 
 const command: Command = {
     data: new SlashCommandBuilder()
@@ -72,7 +75,9 @@ const command: Command = {
                 content: `You rolled a \`${result1}\` and a \`${result2}\` 🎲`
             });
 
-            await handleButtonInteractions(interaction, response, responseBuilder);
+            responseBuilder.response = response;
+
+            await handleButtonInteractions(interaction, responseBuilder, square!);
             await updateTurn(game, playerTurn);
         } catch (error: any) {
             handleCommandError(interaction, error);
@@ -138,23 +143,21 @@ async function handleSquareAction(player: Player, square: Square): Promise<Disco
             }
             break;
         case 'property':
-            let property = await Property.findOne({ where: { gameId: player.gameId, id: square.id } });
+            const property = await Property.findOne({ where: { gameId: player.gameId, id: square.id } });
+            const owner = await Player.findOne({ where: { userId: property!.owner, gameId: player.gameId } });
 
-            if (!property) {
-                property = getPropertyFromStatic(square);
-                boardEmbed.setDescription('What do you want to do?');
-                responseBuilder.actionRow.addComponents(createPropertyPromptActionRow());
-
+            if (!owner) {
+                boardEmbed.setDescription(`What do you want to do?\n\n(**Current Money** \`${player.money}$\`)`);
+                responseBuilder.actionRow.addComponents(createPropertyPromptActionRow(player.get('money') >= property!.price));
                 break;
             }
 
-            const owner = await Player.findOne({ where: { userId: property.owner, gameId: player.gameId } });
-            boardEmbed.setColor(property.color);
+            boardEmbed.setColor(property!.color);
 
-            if (player.userId === owner!.userId) {
+            if (player.userId === owner.userId) {
                 boardEmbed.setDescription(`This property is owned by you. Enjoy your stay!`);
             } else {
-                boardEmbed.setDescription(`This property is owned by ${Client.getInstance().users.cache.get(property.owner)}.
+                boardEmbed.setDescription(`This property is owned by ${await Client.getInstance().users.fetch(owner.userId)}.\n
                     You will need to pay them \`${square.rent}\`$ for rent.`);
 
                 await player.update({ money: player.money - square.rent });
@@ -168,38 +171,72 @@ async function handleSquareAction(player: Player, square: Square): Promise<Disco
     return responseBuilder;
 }
 
-async function handleButtonInteractions(interaction: CommandInteraction, response: any, responseBuilder: DiscordResponse): Promise<void> {
-    try {
-        const confirmation = await response.awaitMessageComponent({
-            filter: (i: Interaction) => i.user.id === interaction.user.id,
-            time: 60000,
-        });
+async function handleButtonInteractions(interaction: CommandInteraction, responseBuilder: DiscordResponse, square: Square): Promise<void> {
+    const collector = responseBuilder.response?.createMessageComponentCollector({ componentType: ComponentType.Button, time: 60000, 
+        filter: (i) => {
+            i.deferUpdate();
+            return i.user.id === interaction.user.id 
+        }})
 
-        switch (confirmation.customId) {
-            case 'buyProperty':
-                console.log('Buy')
-                responseBuilder.embeds[0].setDescription(`You bought the property #PLACEHOLDER# for #PLACEHOLDER#.`);
+    collector?.on('collect', async b => {
+        try {
+            switch (b.customId) {
+                case 'buyProperty':
+                    await executeBuy(square, interaction, responseBuilder);
+                    await responseBuilder.response?.edit({ embeds: responseBuilder.embeds, components: [] });
 
-                // update money
+                    collector.stop('Property bought');
 
-                confirmation.update({ embeds: responseBuilder.embeds, components: [] });
-                break;
-            case 'inspectProperty':
-                break;
-            case 'endTurn': default:
-                throw 'Turn Ended';
+                    break;
+                case 'inspectProperty':
+                    const property = await Property.findOne({ where: { id: square.id } });
+                    if (!property) throw 'Inspect Property Error';
+
+                    const embed = buildTemplateEmbed()
+                        .setColor(property.color)
+                        .setTitle(square.name)
+                        .setDescription(`- **Price**: \`${property.price}\`$\n- **Base rent**: \`${square.rent}\`$\n- **Owned by**: ${property.owner ? await Client.getInstance().users.fetch(property.owner): 'Nobody'}`)
+                        .addFields([
+                            { name: 'Rent with 1 building', value: 'PLACEHOLDER', inline: true },
+                            { name: 'Rent with 2 buildings', value: 'PLACEHOLDER', inline: true },
+                            { name: 'Rent with 3 buildings', value: 'PLACEHOLDER', inline: true },
+                            { name: 'Rent with 4 buildings', value: 'PLACEHOLDER', inline: true },
+                            { name: 'Rent with 1 hotel', value: 'PLACEHOLDER', inline: true },
+                        ]);
+                        
+                    interaction.followUp({ embeds: [embed] });
+                    await responseBuilder.response?.edit({ embeds: responseBuilder.embeds });
+
+                    break;
+                case 'endTurn': default:
+                    throw 'Turn Ended';
+            }
+        } catch {
+            responseBuilder.embeds[0].setDescription('***TURN ENDED***'); 
+            await responseBuilder.response?.edit({ embeds: responseBuilder.embeds, components: [] });
         }
+    });
+}
 
-     } catch {
-        responseBuilder.embeds[0].setDescription('***TURN ENDED***');
-        await response.edit({ embeds: responseBuilder.embeds, components: [] });
-    }
+async function executeBuy(square: Square, interaction: CommandInteraction, responseBuilder: DiscordResponse) {
+    const property = await Property.findOne({ where: { id: square.id } });
+    const player = await Player.findOne({ where: { userId: interaction.user.id } });
+
+    await buyProperty(interaction, property!, player!);
+
+    responseBuilder.embeds[0].setDescription(`You bought the property \`${square.name}\` for \`${property!.price}$\`.\n
+                                                          You now have \`${player!.money}$\` left.`);
 }
 
 async function updateTurn(game: Game, playerTurn: Turn): Promise<void> {
     const nextTurn = (game.get('currentTurn') + 1) % game.get('players')!.length;
     await game.update({ currentTurn: nextTurn });
     await playerTurn.update({ hasRolled: false });
+}
+
+async function buyProperty(interaction: CommandInteraction, property: Property, player: Player) {
+    await property.update({ owner: interaction.user.id }); 
+    await player.update({ money: player.money - property.price }); 
 }
 
 export { command };

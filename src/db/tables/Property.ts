@@ -42,7 +42,7 @@ const Property = sequelize.define<Property>('properties', {
     color: {
         type: DataTypes.STRING(10),
         validate: {
-            isIn: [['red', 'pink', 'yellow', 'light_blue', 'dark_blue', 'green', 'brown', 'orange']]
+            isIn: [['Red', 'LuminousVividPink', 'Yellow', 'Blue', 'DarkBlue', 'Green', 'DarkOrange', 'Orange']]
         },
         allowNull: false
     },

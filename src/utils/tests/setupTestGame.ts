@@ -2,6 +2,8 @@ import { User } from "../../db/tables/User";
 import { Game } from "../../db/tables/Game";
 import { Player } from "../../db/tables/Player";
 import { Turn } from "../../db/tables/Turn";
+import { Property } from "../../db/tables/Property";
+import { getProperties } from "../actions/propertyTurn";
 
 export async function setupTestGame() {
     await Game.create({ id: 1, guild_id: '338791508214022144', status: 'active' });
@@ -13,7 +15,7 @@ export async function setupTestGame() {
             id: '540270864143220805'
         }
     ]);
-    await Player.create({ gameId: 1, userId: '220525113404030987', jailStatus: -1, doubleRollStreak: 2 });
+    await Player.create({ gameId: 1, userId: '220525113404030987' });
     await Player.create({ gameId: 1, userId: '540270864143220805' });
     await Turn.bulkCreate([{
         playerOrder: 0,
@@ -26,4 +28,7 @@ export async function setupTestGame() {
         userId: '540270864143220805'
     }
     ]);
+    const properties = getProperties();
+    properties.map((p: any) => { p.gameId = 1 });
+    await Property.bulkCreate(properties);
 }
