@@ -15,30 +15,30 @@
         "id": 6,
         "price": 60,
         "mortgage": 30,
-        "color": "DarkOrange"
+        "color": "Blue"
     },
     {
         "id": 8,
         "price": 60,
         "mortgage": 30,
-        "color": "DarkOrange"
+        "color": "Blue"
     },
     {
         "id": 9,
         "price": 60,
         "mortgage": 30,
-        "color": "DarkOrange"
+        "color": "Blue"
     },
     {
         "id": 11,
         "price": 60,
         "mortgage": 30,
-        "color": "DarkOrange"
+        "color": "LuminousVividPink"
     },
     {
         "id": 13,
         "price": 60,
         "mortgage": 30,
-        "color": "DarkOrange"
+        "color": "LuminousVividPink"
     }
 ]

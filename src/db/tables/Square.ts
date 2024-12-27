@@ -5,7 +5,7 @@ interface Square extends Model<InferAttributes<Square>, InferCreationAttributes<
     id: number;
     rent: number;
     name: string;
-    type: 'property' | 'station' | 'card' | 'special' | 'start' | 'jail' | 'visit_jail' | 'free_space' | 'small_tax' | 'big_tax';
+    type: 'property' | 'station' | 'card' | 'special' | 'start' | 'jail' | 'visit_jail' | 'free_space' | 'tax';
 }
 
 
@@ -16,7 +16,7 @@ const Square = sequelize.define<Square>('squares', {
    },
    rent: {
     type: DataTypes.SMALLINT,
-    allowNull: false
+    allowNull: true
    },
    name: {
     type: DataTypes.STRING(20)

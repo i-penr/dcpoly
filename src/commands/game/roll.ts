@@ -110,13 +110,9 @@ async function handleSquareAction(player: Player, square: Square): Promise<Disco
         .setTitle(`You landed on \`${square.name}\``);
 
     switch (square!.get('type')) {
-        case 'small_tax':
-            await player.update({ money: player.get('money') - 100 });
-            boardEmbed.setDescription('You paid `100$` to the bank');
-            break;
-        case 'big_tax':
-            await player.update({ money: player.get('money') - 200 });
-            boardEmbed.setDescription('You paid `200$` to the bank');
+        case 'tax':
+            await player.update({ money: player.get('money') - square.get('rent') });
+            boardEmbed.setDescription(`You paid \`${square.get('rent')}$\` to the bank`);
             break;
         case 'visit_jail':
             boardEmbed.setDescription('Don\'t worry, you are just visiting');
@@ -125,8 +121,8 @@ async function handleSquareAction(player: Player, square: Square): Promise<Disco
             boardEmbed.setDescription('Just take a break.');
             break;
         case 'start':
-            await player.update({ money: player.get('money') + 200 });
-            boardEmbed.setDescription('You earned `200$` for completing a lap!');
+            await player.update({ money: player.get('money') - square.get('rent') });
+            boardEmbed.setDescription(`You earned \`${square.get('rent')}$\` for completing a lap!`);
             break;
         case 'jail':
             await goToJail(player);
@@ -142,9 +138,10 @@ async function handleSquareAction(player: Player, square: Square): Promise<Disco
         case 'property':
             const property = await Property.findOne({ where: { gameId: player.gameId, id: square.id } });
             const owner = await Player.findOne({ where: { userId: property!.owner, gameId: player.gameId } });
+            boardEmbed.setColor(property!.color);
 
             if (!owner) {
-                boardEmbed.setDescription(`What do you want to do?\n\n(**Current Money** \`${player.money}$\`)`);
+                boardEmbed.setDescription(`This property is not owned by anyone.\n\nWhat do you want to do?\n\n- **Current Money** \`${player.money}$\`\n- **Price** \`${property!.price}\``);
                 responseBuilder.actionRow.addComponents(createPropertyPromptActionRow(player.get('money') >= property!.price));
                 break;
             }
