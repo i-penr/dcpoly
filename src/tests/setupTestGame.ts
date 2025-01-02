@@ -1,9 +1,9 @@
-import { User } from "../../db/tables/User";
-import { Game } from "../../db/tables/Game";
-import { Player } from "../../db/tables/Player";
-import { Turn } from "../../db/tables/Turn";
-import { Property } from "../../db/tables/Property";
-import { getProperties } from "../actions/propertyTurn";
+import { User } from "../db/tables/User";
+import { Game } from "../db/tables/Game";
+import { Player } from "../db/tables/Player";
+import { Turn } from "../db/tables/Turn";
+import { Property } from "../db/tables/Property";
+import { getProperties } from "../utils/actions/propertyTurn";
 
 export async function setupTestGame() {
     await Game.create({ id: 1, guild_id: '338791508214022144', status: 'active' });
