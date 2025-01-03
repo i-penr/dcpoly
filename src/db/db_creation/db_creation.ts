@@ -1,6 +1,6 @@
 import { User } from "../tables/User";
 import path from "path";
-import { setupTestGame } from "../../utils/tests/setupTestGame";
+import { setupTestGame } from "../../tests/setupTestGame";
 import { sequelize } from "../db";
 import { Game } from "../tables/Game";
 import { Player } from "../tables/Player";

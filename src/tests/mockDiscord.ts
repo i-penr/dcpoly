@@ -56,7 +56,7 @@ export default class MockDiscord {
   private mockCommands() {
     this.commands = new Collection<string, Command>();
 
-    const foldersPath = path.join(__dirname, '..', '..', 'commands');
+    const foldersPath = path.join(__dirname, '..', 'commands');
     const commandFolders = fs.readdirSync(foldersPath);
 
     for (const folder of commandFolders) {
