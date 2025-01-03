@@ -1,0 +1,8 @@
+node_modules
+README.md
+.gitignore
+.eslintrc.json
+.env.example
+database.sqlite
+.vscode
+.git

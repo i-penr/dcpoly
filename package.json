@@ -4,7 +4,7 @@
   "description": "A Discord bot to play a very cool game.",
   "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "bun test",
     "deploy-slash": "bun run src/deployCommands.ts",
     "start": "bun run --watch src/index.ts"
   },
