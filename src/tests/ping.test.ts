@@ -5,6 +5,5 @@ it('should return "Pong!" with the current ping', () => {
     const spy = mockInteractionAndSpyReply('ping');
     const reply = Array.from(spy.mock.calls[0]);
 
-
     expect(reply[0]).toMatch(/Pong!\nLatency: \d+ ms/);
 });
