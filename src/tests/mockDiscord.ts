@@ -1,17 +1,21 @@
 import { jest, spyOn } from "bun:test";
-import { Client, Collection, CommandInteraction, User } from "discord.js";
+import { BaseInteraction, Collection, CommandInteraction, Guild, User } from "discord.js";
 import Command from "../models/interfaces/Command";
 import path from "path";
 import fs from 'fs';
+import Client from "../models/classes/Client";
+
+const client = Client.getInstance();
 
 export default class MockDiscord {
   private client!: Client;
   private user!: User;
   public interaction!: CommandInteraction;
-  public commands!: Collection<string, Command>;
+  public guild!: Guild;
 
   constructor(options: any) {
     this.mockClient();
+    this.mockGuild();
     this.mockUser();
     this.mockInteraction(options?.command);
     this.mockCommands();
@@ -22,12 +26,33 @@ export default class MockDiscord {
   }
 
   public getCommands(): Collection<string, Command> {
-    return this.commands;
+    return client.commands;
   }
 
   private mockClient(): void {
-    this.client = new Client({ intents: [] });
-    this.client.login = jest.fn(() => Promise.resolve(process.env.TOKEN!));
+    this.client = client;
+    this.client.user = Reflect.construct(User, [
+      this.client, {
+        id: "client-id",
+        username: "test-bot",
+        discriminator: "test-bot#0001",
+        avatar: "avatar",
+        bot: "true",
+        displayName: "testBot",
+        avatarURL: "avatarURL"
+      }
+    ]);
+  }
+
+  private mockGuild(): void {
+    this.guild = Reflect.construct(Guild, [
+      this.client, {
+        unavailable: false,
+        id: '338791508214022144',
+        name: 'mocked guild'
+      }
+    ]);
+    this.guild.iconURL = () => 'http://icon-url.com/icon.png';
   }
 
   private mockUser(): void {
@@ -37,25 +62,34 @@ export default class MockDiscord {
         username: "test-user",
         discriminator: "test-user#0000",
         avatar: "avatar",
-        bot: "false"
+        bot: false,
+        displayName: "testUser",
+        avatarURL: "avatarURL"
       }
-    ])
+    ]);
+    this.client.users.cache.set(this.user.id, this.user);
   }
 
   private mockInteraction(command: any): void {
+    if (!command) return;
+
     this.interaction = Reflect.construct(CommandInteraction, [
       this.client, {
         data: command,
         id: BigInt(1),
-        user: this.user
+        user: this.user,
       }
     ]);
+    this.interaction.guildId = this.guild.id;
+     // Use Object.defineProperty to mock the read-only 'guild' property
+     Object.defineProperty(this.interaction, 'guild', {
+      get: () => this.guild,
+    });
+    this.interaction.commandName = command;
     this.interaction.reply = jest.fn();
   }
 
   private mockCommands() {
-    this.commands = new Collection<string, Command>();
-
     const foldersPath = path.join(__dirname, '..', 'commands');
     const commandFolders = fs.readdirSync(foldersPath);
 
@@ -68,7 +102,7 @@ export default class MockDiscord {
         const { command } = require(filePath);
 
         if ('data' in command && 'execute' in command) {
-          this.commands.set(command.data.name, command);
+          client.commands.set(command.data.name, command);
         } else {
           console.log(command)
           console.log(`[WARNING] The command '${file}' is not well formed.`);
@@ -78,13 +112,13 @@ export default class MockDiscord {
   }
 }
 
-export function mockInteractionAndSpyReply(command: any) {
+export async function mockInteractionAndSpyReply(command: any) {
   const discord = new MockDiscord({ command })
   const interaction = discord.getInteraction() as CommandInteraction
   const spy = spyOn(interaction, 'reply')
   const commands = discord.getCommands();
 
-  commands.get(command)?.execute(interaction);
+  await commands.get(command)?.execute(interaction);
 
   return spy;
 }

@@ -14,20 +14,18 @@ export async function setupDatabase() {
     await sequelize.sync({ force: true });
     setupDatabaseAssociations();
 
-    await Square.bulkCreate(JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'data', 'squares.json'), 'utf-8')));
-
     // tests
     await setupTestGame();
 }
 
-function setupDatabaseAssociations() {
+export function setupDatabaseAssociations() {
     // User-Player 1:N
     User.hasMany(Player, {
         foreignKey: {
             allowNull: false
         }
     });
-    Player.belongsTo(User, { foreignKey: 'userId', targetKey: 'id' });
+    Player.belongsTo(User, { foreignKey: 'userId' });
 
     // Game-Player 1:N
     Game.hasMany(Player, {
@@ -35,7 +33,7 @@ function setupDatabaseAssociations() {
             allowNull: false
         }
     })
-    Player.belongsTo(Game, { foreignKey: 'gameId', targetKey: 'id' });
+    Player.belongsTo(Game, { foreignKey: 'gameId' });
 
     // Game-Turn 1:1
     Game.hasOne(Turn);

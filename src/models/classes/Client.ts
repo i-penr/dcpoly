@@ -2,7 +2,7 @@ import { Collection, Client as DiscordClient, GatewayIntentBits } from "discord.
 import Command from "../interfaces/Command";
 
 export default class Client extends DiscordClient {
-    private static client = new Client();
+    private static client: Client | null = null;
     commands: Collection<string, Command>;
 
     private constructor() {
@@ -11,8 +11,10 @@ export default class Client extends DiscordClient {
     }
 
     public static getInstance(): Client {
+        if (!this.client) {
+            this.client = new Client();
+            this.client.login(process.env.TOKEN);
+        }
         return this.client;
     }
-
-    
 }
