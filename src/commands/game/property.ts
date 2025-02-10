@@ -20,13 +20,8 @@ const command: Command = {
         try {
             const game = await getCurrentGameOrFail(interaction.guildId!);
 
-            if (!game) {
-                interaction.reply(buildErrorEmbed(interaction, 'There are no current active games on the server.'));
-                return;
-            }
-
             const selectedId = await (interaction.options as any).getInteger('propertynumber');
-            const property = await Property.findOne({ where: { id: selectedId } });
+            const property = await Property.findOne({ where: { id: selectedId, gameId: game.id } });
             const square = await Square.findOne({ where: { id: selectedId } });
             const propertyEmbed = await buildPropertyEmbed(property!, square!);
 
