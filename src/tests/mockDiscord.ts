@@ -1,5 +1,5 @@
 import { jest, spyOn } from "bun:test";
-import { BaseInteraction, Collection, CommandInteraction, Guild, User } from "discord.js";
+import { Collection, CommandInteraction, Guild, User } from "discord.js";
 import Command from "../models/interfaces/Command";
 import path from "path";
 import fs from 'fs';
@@ -13,11 +13,11 @@ export default class MockDiscord {
   public interaction!: CommandInteraction;
   public guild!: Guild;
 
-  constructor(options: any) {
+  constructor(command: string, options: { getUser: () => User }) {
     this.mockClient();
     this.mockGuild();
     this.mockUser();
-    this.mockInteraction(options?.command);
+    this.mockInteraction(command, options);
     this.mockCommands();
   }
 
@@ -70,7 +70,7 @@ export default class MockDiscord {
     this.client.users.cache.set(this.user.id, this.user);
   }
 
-  private mockInteraction(command: any): void {
+  private mockInteraction(command: string, options: any): void {
     if (!command) return;
 
     this.interaction = Reflect.construct(CommandInteraction, [
@@ -87,6 +87,7 @@ export default class MockDiscord {
     });
     this.interaction.commandName = command;
     this.interaction.reply = jest.fn();
+    this.interaction.options = options;
   }
 
   private mockCommands() {
@@ -112,9 +113,10 @@ export default class MockDiscord {
   }
 }
 
-export async function mockInteractionAndSpyReply(command: any) {
-  const discord = new MockDiscord({ command })
-  const interaction = discord.getInteraction() as CommandInteraction
+export async function mockInteractionAndSpyReply(command: string, options?: any) {
+  const discord = new MockDiscord(command, options);
+  const interaction = discord.getInteraction() as CommandInteraction;
+
   const spy = spyOn(interaction, 'reply')
   const commands = discord.getCommands();
 

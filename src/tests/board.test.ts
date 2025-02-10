@@ -1,26 +1,14 @@
-import { afterAll, afterEach, beforeEach, describe, expect, it } from "bun:test";
+import { beforeEach, describe, expect, it } from "bun:test";
 import { mockInteractionAndSpyReply } from "./mockDiscord";
-import { sequelize as baseSequelize } from "../db/db";
-import { setupDatabaseAssociations } from "../db/db_creation/db_creation";
-import { setupTestGame } from "./setupTestGame";
 import { Game } from "../db/tables/Game";
 import { Player } from "../db/tables/Player";
+import { mockDb } from "./mockDb";
 
 describe('/board command tests', () => {
     let spy: any, sequelize: any;
 
     beforeEach(async () => {
-        sequelize = Object.assign(baseSequelize);
-        //sequelize.options.logging = console.log;
-        sequelize.options.storage = ':memory:';
-
-        await sequelize.sync({ force: true });
-        setupDatabaseAssociations();
-        await setupTestGame();
-    });
-
-    afterAll(async () => {
-        await sequelize.close();
+       sequelize = await mockDb(); 
     });
 
     it('should throw error message, game null', async () => {

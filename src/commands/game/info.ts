@@ -17,11 +17,6 @@ const command: Command = {
         try {
             const game = await getCurrentGameOrFail(interaction.guildId!);
 
-            if (!game) {
-                interaction.reply(buildErrorEmbed(interaction, 'There are no current active games on the server.'));
-                return;
-            }
-
             const players = game.get('players') ?? [];
             const chosenUser: User = interaction.options.getUser('player') ?? interaction.user;
             const chosenPlayer = players.find((p) => p.get('userId') === chosenUser.id);
