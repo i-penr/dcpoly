@@ -35,7 +35,7 @@ describe('/board command tests', () => {
     })
 
     it('should throw error message, game not in active state', async () => {
-        await (await Game.findByPk(1))?.update({ status: 'new' });
+        await (await Game.findByPk(process.env.GAME_ID))?.update({ status: 'new' });
         
         spy = await mockInteractionAndSpyReply('board');
 
