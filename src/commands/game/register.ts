@@ -25,7 +25,7 @@ const command: Command = {
                 return;
             }
 
-            if (players.length > 8) {
+            if (players.length === 8) {
                 interaction.reply(buildErrorEmbed(interaction, 'The game has reached its maximum amount of players (8). Run `/startgame` to start.'));
                 return;
             }
