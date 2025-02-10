@@ -1,12 +1,10 @@
 import { User } from "../tables/User";
-import path from "path";
-import { setupTestGame } from "../../tests/setupTestGame";
+import { setupTestGame } from "../../tests/setupRealTestGame";
 import { sequelize } from "../db";
 import { Game } from "../tables/Game";
 import { Player } from "../tables/Player";
 import { Square } from "../tables/Square";
 import { Turn } from "../tables/Turn";
-import fs from 'node:fs';
 import { Property } from "../tables/Property";
 
 

@@ -1,5 +1,5 @@
 import { expect, it } from "bun:test";
-import { mockInteractionAndSpyReply } from "./mockDiscord";
+import { mockInteractionAndSpyReply } from "../mockDiscord";
 
 it('should return "Pong!" with the current ping', async () => {
     const spy = await mockInteractionAndSpyReply('ping');

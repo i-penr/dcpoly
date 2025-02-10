@@ -1,6 +1,6 @@
 import { sequelize as baseSequelize } from "../db/db";
 import { setupDatabaseAssociations } from "../db/db_creation/db_creation";
-import { setupTestGame } from "./setupTestGame";
+import { setupFakeTestGame } from "./setupFakeTestGame";
 
 export async function mockDb() {
     const sequelize = Object.assign(baseSequelize);
@@ -9,7 +9,7 @@ export async function mockDb() {
 
     await sequelize.sync({ force: true });
     setupDatabaseAssociations();
-    await setupTestGame();
+    await setupFakeTestGame();
 
     return sequelize;
 }

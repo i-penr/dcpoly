@@ -48,7 +48,7 @@ export default class MockDiscord {
     this.guild = Reflect.construct(Guild, [
       this.client, {
         unavailable: false,
-        id: '338791508214022144',
+        id: 'guildId',
         name: 'mocked guild'
       }
     ]);
@@ -58,7 +58,7 @@ export default class MockDiscord {
   private mockUser(): void {
     this.user = Reflect.construct(User, [
       this.client, {
-        id: "user-id",
+        id: process.env.AUTHOR_ID,
         username: "test-user",
         discriminator: "test-user#0000",
         avatar: "avatar",

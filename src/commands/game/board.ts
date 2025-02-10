@@ -32,9 +32,7 @@ async function getPlayerPositionString(gameId: number, client: Client) {
     let playerPositions = '';
 
     for (let player of players) {
-        const username = client.users.cache.get(player.get('userId'));
-
-        playerPositions += `- ${username} is at square \`${player.current_square}\`\n`;
+        playerPositions += `- <@${player.userId}> is at square \`${player.current_square}\`\n`;
     }
 
     return playerPositions || 'No players.';

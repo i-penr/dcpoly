@@ -14,8 +14,7 @@ const command: Command = {
             const game = await getGameFromGuildWithStatus(interaction.guildId!, { [Op.not]: 'finished' });
 
             if (game) {
-                interaction.reply(buildErrorEmbed(interaction, `There is already a game with the status *${game.get('status')}* or *active*
-                                                                on this server. **Finish** the game first before creating a new one.`));
+                interaction.reply(buildErrorEmbed(interaction, `There is already a game with the status *new* or *active* on this server.\n**Finish** the game first before creating a new one.`));
                 return;
             }
 

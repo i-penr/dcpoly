@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from "bun:test";
-import { mockInteractionAndSpyReply } from "./mockDiscord";
-import { Game } from "../db/tables/Game";
-import { Player } from "../db/tables/Player";
-import { mockDb } from "./mockDb";
+import { mockInteractionAndSpyReply } from "../mockDiscord";
+import { Game } from "../../db/tables/Game";
+import { Player } from "../../db/tables/Player";
+import { mockDb } from "../mockDb";
 
 describe('/board command tests', () => {
     let spy: any, sequelize: any;
@@ -23,6 +23,7 @@ describe('/board command tests', () => {
         spy = await mockInteractionAndSpyReply('board');
         const reply = spy.mock.calls[0][0];
 
+        console.log(reply.embeds[0].data.title)
         expect(reply.embeds[0].data.title).toMatch(/.*\'s board - Game #.*/);
     });
 
