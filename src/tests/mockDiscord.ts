@@ -88,6 +88,7 @@ export default class MockDiscord {
     this.interaction.commandName = command;
     this.interaction.reply = jest.fn();
     this.interaction.options = options;
+    this.interaction.deferReply = jest.fn();
   }
 
   private mockCommands() {

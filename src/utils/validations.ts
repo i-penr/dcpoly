@@ -13,7 +13,7 @@ export async function getCurrentGameOrFail(guildId: string): Promise<Game> {
 
 export function getPlayerOrFail(game: Game, userId: string): Player {
     const player = game.players?.find((p) => p.userId === userId);
-    if (!player) throw new Error(`User is not registered in the current game. Run \`/register\` to join game ${game.get('id')}`);
+    if (!player) throw new Error(`User is not registered in the current game. No players can register, since the game has already started.`);
     return player;
 }
 

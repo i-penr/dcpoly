@@ -33,7 +33,7 @@ const command: Command = {
             const { result1, result2 } = rollDices();
 
             await interaction.deferReply();
-
+            
             if (player.get('jailStatus') !== -1) {
                 const continuesPlaying = await promptJailActionAndCheckIfPlays(player, interaction, result1, result2);
                 if (!continuesPlaying) return;
