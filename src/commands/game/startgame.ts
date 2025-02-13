@@ -4,6 +4,7 @@ import { Turn } from "../../db/tables/Turn";
 import { getGameFromGuildWithStatus } from "../../utils/database";
 import { Property } from "../../db/tables/Property";
 import { getProperties } from "../../utils/actions/propertyTurn";
+import { buildErrorEmbed } from "../../utils/embeds/buildErrorEmbedResponse";
 
 const command: Command = {
     data: new SlashCommandBuilder()
@@ -14,7 +15,7 @@ const command: Command = {
             const game = await getGameFromGuildWithStatus(interaction.guildId!, 'new');
 
             if (!game) {
-                interaction.reply('There are no games with the status `new` on the server. Create a new game with `/newgame`');
+                interaction.reply(buildErrorEmbed(interaction, 'There are no games with the status `new` on the server. Create a new game with `/newgame`'));
                 return;
             }
 
@@ -22,7 +23,7 @@ const command: Command = {
             const players = game.players ?? [];
 
             if (players.length < 2) {
-                interaction.reply(`There are not enough players in game **#${gameId}** to start!`);
+                interaction.reply(buildErrorEmbed(interaction, `There are not enough players in game **#${gameId}** to start!`));
                 return;
             }
 
@@ -37,7 +38,6 @@ const command: Command = {
             const properties = getProperties();
             properties.map((p: any) => p.gameId = gameId);
             await Property.bulkCreate(properties);
-            
             game.update({ status: 'active', start_date: new Date(), currentTurn: 0 });
 
             interaction.reply(`Game #${gameId} has now started!`);

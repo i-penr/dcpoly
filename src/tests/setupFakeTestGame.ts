@@ -9,7 +9,7 @@ import path from "node:path";
 import fs from 'node:fs';
 
 /**
- * This is for the bun tests.
+ * This is for the bun/jest tests.
  */
 
 export async function setupFakeTestGame() {
@@ -40,6 +40,6 @@ export async function setupFakeTestGame() {
     }
     ]);
     const properties = getProperties();
-    properties.map((p: any) => { p.gameId = 1 });
+    properties.map((p: any) => { p.gameId = gameId });
     await Property.bulkCreate(properties);
 }
