@@ -12,6 +12,7 @@ interface Property extends Model<InferAttributes<Property>, InferCreationAttribu
     mortgage: CreationOptional<number>;
     color: 'Red' | 'LuminousVividPink' | 'Yellow' | 'Blue' | 'DarkBlue' | 'Green' | 'DarkOrange' | 'Orange';
     square: NonAttribute<Square>;
+    rent: CreationOptional<number>;
 }
 
 const Property = sequelize.define<Property>('properties', {
@@ -51,6 +52,10 @@ const Property = sequelize.define<Property>('properties', {
         allowNull: false
     },
     mortgage: {
+        type: DataTypes.SMALLINT,
+        allowNull: false
+    },
+    rent: {
         type: DataTypes.SMALLINT,
         allowNull: false
     }

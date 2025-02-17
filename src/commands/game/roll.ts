@@ -111,7 +111,7 @@ async function handleSquareAction(player: Player, square: Square): Promise<Disco
 
     switch (square!.get('type')) {
         case 'tax':
-            await player.update({ money: player.get('money') - square.get('rent') });
+            await player.update({ money: player.get('money') - square.cost });
             boardEmbed.setDescription(`You paid \`${square.get('rent')}$\` to the bank`);
             break;
         case 'visit_jail':
@@ -121,7 +121,7 @@ async function handleSquareAction(player: Player, square: Square): Promise<Disco
             boardEmbed.setDescription('Just take a break.');
             break;
         case 'start':
-            await player.update({ money: player.get('money') - square.get('rent') });
+            await player.update({ money: player.get('money') - square.cost });
             boardEmbed.setDescription(`You earned \`${square.get('rent')}$\` for completing a lap!`);
             break;
         case 'jail':
@@ -152,10 +152,10 @@ async function handleSquareAction(player: Player, square: Square): Promise<Disco
                 boardEmbed.setDescription(`This property is owned by you. Enjoy your stay!`);
             } else {
                 boardEmbed.setDescription(`This property is owned by ${await Client.getInstance().users.fetch(owner.userId)}.\n
-                    You will need to pay them \`${square.rent}\`$ for rent.`);
+                    You will need to pay them \`${property.rent}\`$ for rent.`);
 
-                await player.update({ money: player.money - square.rent });
-                await owner!.update({ money: owner!.money + square.rent });
+                await player.update({ money: player.money - property.rent });
+                await owner!.update({ money: owner!.money + property.rent });
             }
             break;
     }
@@ -186,7 +186,7 @@ async function handleButtonInteractions(interaction: CommandInteraction, respons
                     const property = square.get('property') as Property; 
                     if (!property) throw 'Inspect Property Error';
 
-                    const embed = await buildPropertyEmbed(property, square);
+                    const embed = await buildPropertyEmbed(square);
                         
                     interaction.followUp({ embeds: [embed] });
                     await responseBuilder.response?.edit({ embeds: responseBuilder.embeds });

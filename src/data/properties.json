@@ -3,42 +3,154 @@
         "id": 1,
         "price": 60,
         "mortgage": 30,
-        "color": "DarkOrange"
+        "color": "DarkOrange",
+        "rent": 2
     },
     {
         "id": 3,
         "price": 60,
         "mortgage": 30,
-        "color": "DarkOrange"
+        "color": "DarkOrange",
+        "rent": 4
     },
     {
         "id": 6,
         "price": 60,
         "mortgage": 30,
-        "color": "Blue"
+        "color": "Blue",
+        "rent": 6
     },
     {
         "id": 8,
         "price": 60,
         "mortgage": 30,
-        "color": "Blue"
+        "color": "Blue",
+        "rent": 6
     },
     {
         "id": 9,
         "price": 60,
         "mortgage": 30,
-        "color": "Blue"
+        "color": "Blue",
+        "rent": 8
     },
     {
         "id": 11,
-        "price": 60,
-        "mortgage": 30,
-        "color": "LuminousVividPink"
+        "price": 140,
+        "mortgage": 70,
+        "color": "LuminousVividPink",
+        "rent": 10
     },
     {
         "id": 13,
-        "price": 60,
+        "price": 140,
+        "mortgage": 70,
+        "color": "LuminousVividPink",
+        "rent": 10
+    },
+    {
+        "id": 14,
+        "price": 160,
+        "mortgage": 80,
+        "color": "LuminousVividPink",
+        "rent": 12
+    },
+    {
+        "id": 16,
+        "price": 180,
         "mortgage": 30,
-        "color": "LuminousVividPink"
+        "color": "LightBrown",
+        "rent": 10
+    },
+    {
+        "id": 18,
+        "price": 180,
+        "mortgage": 90,
+        "color": "LightBrown",
+        "rent": 14
+    },
+    {
+        "id": 19,
+        "price": 200,
+        "mortgage": 100,
+        "color": "LightBrown",
+        "rent": 16
+    },
+    {
+        "id": 21,
+        "price": 220,
+        "mortgage": 110,
+        "color": "Red",
+        "rent": 18
+    },
+    {
+        "id": 23,
+        "price": 220,
+        "mortgage": 110,
+        "color": "Red",
+        "rent": 18
+    },
+    {
+        "id": 24,
+        "price": 240,
+        "mortgage": 120,
+        "color": "Red",
+        "rent": 20
+    },
+    {
+        "id": 26,
+        "price": 260,
+        "mortgage": 130,
+        "color": "Yellow",
+        "rent": 22
+    },
+    {
+        "id": 27,
+        "price": 260,
+        "mortgage": 130,
+        "color": "Yellow",
+        "rent": 22
+    },
+    {
+        "id": 29,
+        "price": 280,
+        "mortgage": 140,
+        "color": "Yellow",
+        "rent": 24
+    },
+    {
+        "id": 31,
+        "price": 300,
+        "mortgage": 150,
+        "color": "Green",
+        "rent": 26
+    },
+    {
+        "id": 32,
+        "price": 300,
+        "mortgage": 150,
+        "color": "Green",
+        "rent": 26
+    },
+    {
+        "id": 34,
+        "price": 320,
+        "mortgage": 160,
+        "color": "Green",
+        "rent": 28
+    },
+    {
+        "id": 37,
+        "price": 350,
+        "mortgage": 175,
+        "color": "Blue",
+        "rent": 35
+    },
+    {
+        "id": 39,
+        "price": 400,
+        "mortgage": 200,
+        "color": "Blue",
+        "rent": 50
     }
 ]
