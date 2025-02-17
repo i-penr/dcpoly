@@ -40,7 +40,7 @@ const command: Command = {
             }
 
             const squareNumber = await executePlayerMove(player, playerTurn, result1 + result2);
-            const square = await Square.findOne({ where: { id: squareNumber } });
+            const square = await Square.findOne({ where: { id: squareNumber }, include: [{ model: Property, where: { gameId: game.id }, required: false }]});
 
             let responseBuilder = new DiscordResponse();
 
@@ -136,7 +136,7 @@ async function handleSquareAction(player: Player, square: Square): Promise<Disco
             }
             break;
         case 'property':
-            const property = await Property.findOne({ where: { gameId: player.gameId, id: square.id } });
+            const property = square.get('property') as Property;
             const owner = await Player.findOne({ where: { userId: property!.owner, gameId: player.gameId } });
             boardEmbed.setColor(property!.color);
 
@@ -183,7 +183,7 @@ async function handleButtonInteractions(interaction: CommandInteraction, respons
 
                     break;
                 case 'inspectProperty':
-                    const property = await Property.findOne({ where: { id: square.id } });
+                    const property = square.get('property') as Property; 
                     if (!property) throw 'Inspect Property Error';
 
                     const embed = await buildPropertyEmbed(property, square);
@@ -203,7 +203,7 @@ async function handleButtonInteractions(interaction: CommandInteraction, respons
 }
 
 async function executeBuy(square: Square, interaction: CommandInteraction, responseBuilder: DiscordResponse) {
-    const property = await Property.findOne({ where: { id: square.id } });
+    const property = square.get('property') as Property;
     const player = await Player.findOne({ where: { userId: interaction.user.id } });
 
     await buyProperty(interaction, property!, player!);

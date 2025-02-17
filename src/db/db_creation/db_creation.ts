@@ -74,4 +74,12 @@ export function setupDatabaseAssociations() {
     Property.belongsTo(Game, {
         foreignKey: 'gameId'
     });
+
+    // Square-Property 0:1
+    Square.hasOne(Property, {
+        foreignKey: 'id'
+    });
+    Property.hasOne(Square, {
+        foreignKey: 'id'
+    });
 }

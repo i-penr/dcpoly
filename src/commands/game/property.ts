@@ -21,8 +21,8 @@ const command: Command = {
             const game = await getCurrentGameOrFail(interaction.guildId!);
 
             const selectedId = await (interaction.options as any).getInteger('propertynumber');
-            const property = await Property.findOne({ where: { id: selectedId, gameId: game.id } });
-            const square = await Square.findOne({ where: { id: selectedId } });
+            const square = await Square.findOne({ where: { id: selectedId }, include: [{ model: Property, where: { gameId: game.id } }]  });
+            const property = square?.get('property') as Property; 
             const propertyEmbed = await buildPropertyEmbed(property!, square!);
 
             interaction.reply({ embeds: [propertyEmbed] });
