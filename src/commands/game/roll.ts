@@ -33,14 +33,14 @@ const command: Command = {
             const { result1, result2 } = rollDices();
 
             await interaction.deferReply();
-            
+
             if (player.get('jailStatus') !== -1) {
                 const continuesPlaying = await promptJailActionAndCheckIfPlays(player, interaction, result1, result2);
                 if (!continuesPlaying) return;
             }
 
             const squareNumber = await executePlayerMove(player, playerTurn, result1 + result2);
-            const square = await Square.findOne({ where: { id: squareNumber }, include: [{ model: Property, where: { gameId: game.id }, required: false }]});
+            const square = await Square.findOne({ where: { id: squareNumber }, include: [{ model: Property, where: { gameId: game.id }, required: false }] });
 
             let responseBuilder = new DiscordResponse();
 
@@ -112,7 +112,7 @@ async function handleSquareAction(player: Player, square: Square): Promise<Disco
     switch (square!.get('type')) {
         case 'tax':
             await player.update({ money: player.get('money') - square.cost });
-            boardEmbed.setDescription(`You paid \`${square.get('rent')}$\` to the bank`);
+            boardEmbed.setDescription(`You paid \`${square.get('cost')}$\` to the bank`);
             break;
         case 'visit_jail':
             boardEmbed.setDescription('Don\'t worry, you are just visiting');
@@ -166,11 +166,17 @@ async function handleSquareAction(player: Player, square: Square): Promise<Disco
 }
 
 async function handleButtonInteractions(interaction: CommandInteraction, responseBuilder: DiscordResponse, square: Square): Promise<void> {
-    const collector = responseBuilder.response?.createMessageComponentCollector({ componentType: ComponentType.Button, time: 60000, 
+    const collector = responseBuilder.response?.createMessageComponentCollector({
+        componentType: ComponentType.Button, time: 60000,
         filter: (i) => {
             i.deferUpdate();
-            return i.user.id === interaction.user.id 
-        }})
+            return i.user.id === interaction.user.id
+        }
+    });
+
+    collector?.on('end', _collected => {
+        markTurnAsEnded();
+    });
 
     collector?.on('collect', async b => {
         try {
@@ -183,23 +189,28 @@ async function handleButtonInteractions(interaction: CommandInteraction, respons
 
                     break;
                 case 'inspectProperty':
-                    const property = square.get('property') as Property; 
+                    const property = square.get('property') as Property;
                     if (!property) throw 'Inspect Property Error';
 
                     const embed = await buildPropertyEmbed(square);
-                        
-                    interaction.followUp({ embeds: [embed] });
-                    await responseBuilder.response?.edit({ embeds: responseBuilder.embeds });
+
+                    interaction.followUp({ embeds: [embed], content: 'You clicked on \`See Property Details`:' });
+                    responseBuilder.actionRow.components[1].setDisabled(true);
+                    await responseBuilder.response?.edit({ embeds: responseBuilder.embeds, components: [responseBuilder.actionRow] });
 
                     break;
                 case 'endTurn': default:
                     throw 'Turn Ended';
             }
         } catch {
-            responseBuilder.embeds[0].setDescription('***TURN ENDED***'); 
-            await responseBuilder.response?.edit({ embeds: responseBuilder.embeds, components: [] });
+            markTurnAsEnded();
         }
     });
+
+    function markTurnAsEnded() {
+        responseBuilder.embeds[0].setDescription('***TURN ENDED***');
+        responseBuilder.response?.edit({ embeds: responseBuilder.embeds, components: [] });
+    }
 }
 
 async function executeBuy(square: Square, interaction: CommandInteraction, responseBuilder: DiscordResponse) {
@@ -219,8 +230,8 @@ async function updateTurn(game: Game, playerTurn: Turn): Promise<void> {
 }
 
 async function buyProperty(interaction: CommandInteraction, property: Property, player: Player) {
-    await property.update({ owner: interaction.user.id }); 
-    await player.update({ money: player.money - property.price }); 
+    await property.update({ owner: interaction.user.id });
+    await player.update({ money: player.money - property.price });
 }
 
 export { command };
