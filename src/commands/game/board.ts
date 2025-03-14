@@ -18,7 +18,7 @@ const command: Command = {
             const boardEmbed = buildBoardEmbed()
                 .setThumbnail(interaction.guild?.iconURL()!)
                 .setTitle(`${interaction.guild?.name}'s board - Game #${game.get('id')}`)
-                .setDescription(await getPlayerPositionString(game.get('id'), Client.getInstance()));
+                .setDescription(getPlayerPositionString(game.players ?? []));
 
             interaction.reply({ embeds: [boardEmbed], files: [boardImg] });
         } catch (error: any) {
@@ -27,8 +27,7 @@ const command: Command = {
     },
 }
 
-async function getPlayerPositionString(gameId: number, client: Client) {
-    const players = await Player.findAll({ where: { gameId: gameId } });
+function getPlayerPositionString(players: Player[]) {
     let playerPositions = '';
 
     for (let player of players) {

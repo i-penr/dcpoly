@@ -3,10 +3,8 @@ import { setupTestGame } from "../../tests/setupRealTestGame";
 import { sequelize } from "../db";
 import { Game } from "../tables/Game";
 import { Player } from "../tables/Player";
-import { Square } from "../tables/Square";
 import { Turn } from "../tables/Turn";
-import { Property } from "../tables/Property";
-
+import { PropertyGame } from "../tables/PropertyGame";
 
 export async function setupDatabase() {
     await sequelize.sync({ force: true });
@@ -45,41 +43,25 @@ export function setupDatabaseAssociations() {
         foreignKey: 'userId'
     });
 
-    // Player-Square N:1
-    Player.belongsTo(Square, {
-        foreignKey: 'current_square'
-    });
-    Square.hasMany(Player, {
-        foreignKey: 'current_square'
-    });
-
     // Property-Player 1:N
-    Player.hasMany(Property, {
-        foreignKey: 'owner'
+    Player.hasMany(PropertyGame, {
+        foreignKey: 'ownerId',
     });
-    Property.belongsTo(Player, {
-        foreignKey: 'owner'
+    PropertyGame.belongsTo(Player, {
+        foreignKey: 'ownerId'
     });
-    Player.hasMany(Property, {
+    Player.hasMany(PropertyGame, {
         foreignKey: 'gameId'
     });
-    Property.belongsTo(Player, {
+    PropertyGame.belongsTo(Player, {
         foreignKey: 'gameId'
     });
 
     // Property-Game 1:N
-    Game.hasMany(Property, {
+    Game.hasMany(PropertyGame, {
         foreignKey: 'gameId'
     });
-    Property.belongsTo(Game, {
+    PropertyGame.belongsTo(Game, {
         foreignKey: 'gameId'
-    });
-
-    // Square-Property 0:1
-    Square.hasOne(Property, {
-        foreignKey: 'id'
-    });
-    Property.hasOne(Square, {
-        foreignKey: 'id'
     });
 }

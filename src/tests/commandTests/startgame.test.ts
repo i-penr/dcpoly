@@ -3,7 +3,6 @@ import { mockDb } from "../mockDb";
 import { mockInteractionAndSpyReply } from "../mockDiscord";
 import { Player } from "../../db/tables/Player";
 import { Game } from "../../db/tables/Game";
-import { Property } from "../../db/tables/Property";
 
 describe('/startgame command tests', () => {
     let spy: any, sequelize: any;
@@ -41,7 +40,6 @@ describe('/startgame command tests', () => {
     });
 
     it('should start the game', async () => {
-        await Property.truncate();
         spy = await mockInteractionAndSpyReply('startgame');
         const reply = spy.mock.calls[0][0];
 

@@ -12,16 +12,18 @@ import { promptJailActionAndCheckIfPlays } from "../../utils/actions/jailTurn";
 import { Player } from "../../db/tables/Player";
 import { Game } from "../../db/tables/Game";
 import { Turn } from "../../db/tables/Turn";
-import { Square } from "../../db/tables/Square";
 import { rollDices } from "../../utils/actions/rollDices";
 import { goToJail } from "../../utils/actions/goToJail";
 import { useCard } from "../../utils/actions/cardTurn";
-import { createPropertyPromptActionRow } from "../../utils/actions/propertyTurn";
-import { Property } from "../../db/tables/Property";
+import { createPropertyPromptActionRow, getPropertyFromId } from "../../utils/actions/propertyActions";
 import Client from "../../models/classes/Client"
 import DiscordResponse from "../../models/classes/DiscordResponse";
 import { getCurrentGameOrFail, getPlayerOrFail, getPlayerTurn, handleCommandError, validateTurn } from "../../utils/validations";
 import { buildPropertyEmbed } from "../../utils/embeds/buildPropertyEmbed";
+import { PropertyGame } from "../../db/tables/PropertyGame";
+import Property from "../../models/interfaces/Property";
+import { getSquareById } from "../../utils/actions/squareActions";
+import Square from "../../models/interfaces/Square";
 
 const command: Command = {
     data: new SlashCommandBuilder()
@@ -40,7 +42,7 @@ const command: Command = {
             }
 
             const squareNumber = await executePlayerMove(player, playerTurn, result1 + result2);
-            const square = await Square.findOne({ where: { id: squareNumber }, include: [{ model: Property, where: { gameId: game.id }, required: false }] });
+            const square = getSquareById(squareNumber);
 
             let responseBuilder = new DiscordResponse();
 
@@ -56,7 +58,7 @@ const command: Command = {
                 responseBuilder.embeds.push(doubleTroubleEmbed);
             } else {
                 if (result1 === result2) await player.update({ doubleRollStreak: player.get('doubleRollStreak') + 1 });
-                responseBuilder = await handleSquareAction(player, square!);
+                responseBuilder = await handleSquareAction(player, square!, game);
             }
 
             const endTurnButton = new ButtonBuilder()
@@ -104,15 +106,18 @@ async function executePlayerMove(player: Player, playerTurn: Turn, squaresMoved:
     return newSquare;
 }
 
-async function handleSquareAction(player: Player, square: Square): Promise<DiscordResponse> {
+async function handleSquareAction(player: Player, square: Square, game: Game): Promise<DiscordResponse> {
     const responseBuilder = new DiscordResponse();
     const boardEmbed = buildBoardEmbed()
         .setTitle(`You landed on \`${square.name}\``);
 
-    switch (square!.get('type')) {
+    if (square.cost) {
+        await player.update({ money: player.get('money') - square.cost });
+    }
+
+    switch (square.type) {
         case 'tax':
-            await player.update({ money: player.get('money') - square.cost });
-            boardEmbed.setDescription(`You paid \`${square.get('cost')}$\` to the bank`);
+            boardEmbed.setDescription(`You paid \`${square.cost}$\` to the bank`);
             break;
         case 'visit_jail':
             boardEmbed.setDescription('Don\'t worry, you are just visiting');
@@ -121,8 +126,7 @@ async function handleSquareAction(player: Player, square: Square): Promise<Disco
             boardEmbed.setDescription('Just take a break.');
             break;
         case 'start':
-            await player.update({ money: player.get('money') - square.cost });
-            boardEmbed.setDescription(`You earned \`${square.get('rent')}$\` for completing a lap!`);
+            boardEmbed.setDescription(`You earned \`${square.cost}$\` for completing a lap!`);
             break;
         case 'jail':
             await goToJail(player);
@@ -136,26 +140,32 @@ async function handleSquareAction(player: Player, square: Square): Promise<Disco
             }
             break;
         case 'property':
-            const property = square.get('property') as Property;
-            const owner = await Player.findOne({ where: { userId: property!.owner, gameId: player.gameId } });
-            boardEmbed.setColor(property!.color);
+            const property: Property = getPropertyFromId(square.id);
+            const propertyGame = await PropertyGame.findOne({ where: { gameId: game.id, id: square.id }, include: Player });
+
+            if (!property || !propertyGame) throw new Error('Property does not exist (internal error).');
+
+            const owner = propertyGame.owner;
+
+            boardEmbed.setTitle(`You laned on \`${property.name}\``);
+            boardEmbed.setColor(property.color);
 
             if (!owner) {
-                boardEmbed.setDescription(`This property is not owned by anyone.\n\nWhat do you want to do?\n\n- **Current Money** \`${player.money}$\`\n- **Price** \`${property!.price}\``);
-                responseBuilder.actionRow.addComponents(createPropertyPromptActionRow(player.get('money') >= property!.price));
+                boardEmbed.setDescription(`This property is not owned by anyone.\n\nWhat do you want to do?\n\n- **Current Money** \`${player.money}$\`\n- **Price** \`${property.price}\``);
+                responseBuilder.actionRow.addComponents(createPropertyPromptActionRow(player.get('money') >= property.price));
                 break;
             }
 
-            boardEmbed.setColor(property!.color);
+            const rent = property.rentProg[propertyGame.numBuildings];
 
             if (player.userId === owner.userId) {
                 boardEmbed.setDescription(`This property is owned by you. Enjoy your stay!`);
             } else {
                 boardEmbed.setDescription(`This property is owned by ${await Client.getInstance().users.fetch(owner.userId)}.\n
-                    You will need to pay them \`${property.rent}\`$ for rent.`);
+                    You will need to pay them \`${rent}\`$ for rent.`);
 
-                await player.update({ money: player.money - property.rent });
-                await owner!.update({ money: owner!.money + property.rent });
+                await player.update({ money: player.money - rent });
+                await owner!.update({ money: owner!.money + rent });
             }
             break;
     }
@@ -189,10 +199,10 @@ async function handleButtonInteractions(interaction: CommandInteraction, respons
 
                     break;
                 case 'inspectProperty':
-                    const property = square.get('property') as Property;
+                    const property = getPropertyFromId(square.id);
                     if (!property) throw 'Inspect Property Error';
 
-                    const embed = await buildPropertyEmbed(square);
+                    const embed = await buildPropertyEmbed(property);
 
                     interaction.followUp({ embeds: [embed], content: 'You clicked on \`See Property Details`:' });
                     responseBuilder.actionRow.components[1].setDisabled(true);
@@ -214,10 +224,10 @@ async function handleButtonInteractions(interaction: CommandInteraction, respons
 }
 
 async function executeBuy(square: Square, interaction: CommandInteraction, responseBuilder: DiscordResponse) {
-    const property = square.get('property') as Property;
+    const property = getPropertyFromId(square.id);
     const player = await Player.findOne({ where: { userId: interaction.user.id } });
 
-    await buyProperty(interaction, property!, player!);
+    await buyProperty(property!, player!);
 
     responseBuilder.embeds[0].setDescription(`You bought the property \`${square.name}\` for \`${property!.price}$\`.\n
                                                           You now have \`${player!.money}$\` left.`);
@@ -229,8 +239,8 @@ async function updateTurn(game: Game, playerTurn: Turn): Promise<void> {
     await playerTurn.update({ hasRolled: false });
 }
 
-async function buyProperty(interaction: CommandInteraction, property: Property, player: Player) {
-    await property.update({ owner: interaction.user.id });
+async function buyProperty(property: Property, player: Player) {
+    await (await PropertyGame.findOne({ where: { gameId: player.gameId, id: property.id } }))?.update({ ownerId: player.userId });
     await player.update({ money: player.money - property.price });
 }
 

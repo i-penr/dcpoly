@@ -1,19 +1,32 @@
+import { Game } from "../../db/tables/Game";
+import { PropertyGame } from "../../db/tables/PropertyGame";
 import Client from "../../models/classes/Client";
-import { Property } from "../../db/tables/Property";
-import { Square } from "../../db/tables/Square";
+import Property from "../../models/interfaces/Property";
 import { buildTemplateEmbed } from "./buildTemplateEmbed";
 
-export const buildPropertyEmbed = async (square: Square) => {
-    const property = square.get('property') as Property;
+export const buildPropertyEmbed = async (property: Property, game?: Game) => {
+    let owner = game ? (await PropertyGame.findOne({ where: { id: property.id, gameId: game.id } }))?.ownerId : null;
+
     return buildTemplateEmbed()
-    .setColor(property.color)
-    .setTitle(square.name)
-    .setDescription(`- **Price**: \`${property.price}\`$\n- **Base rent**: \`${property.rent}\`$\n- **Owned by**: ${property.owner ? await Client.getInstance().users.fetch(property.owner): 'Nobody'}`)
-    .addFields([
-        { name: 'Rent with 1 building', value: 'PLACEHOLDER', inline: true },
-        { name: 'Rent with 2 buildings', value: 'PLACEHOLDER', inline: true },
-        { name: 'Rent with 3 buildings', value: 'PLACEHOLDER', inline: true },
-        { name: 'Rent with 4 buildings', value: 'PLACEHOLDER', inline: true },
-        { name: 'Rent with 1 hotel', value: 'PLACEHOLDER', inline: true },
-    ]);
+        .setColor(property.color)
+        .setTitle(property.name)
+        .setDescription(await getPropertyDataString(property, owner!, game ?? undefined))
+        .addFields(
+            property.rentProg.map((rent: number, index: number) => ({ name: `Rent with ${index !== 5 ? `${index} house${ index !== 1 ? 's' : ''}` : 'hotel'}`, value: rent.toString(), inline: true }))
+        );
+}
+
+async function getPropertyDataString(property: Property, owner: string | null, game?: Game) {
+    let data: any = {
+        "Price": property.price.toLocaleString(),
+        "Mortgage": property.mortgage.toLocaleString(),
+        "Cost per Bulding": property.buildingCost.toLocaleString(),
+    }
+
+    // If there is a game running, add these game-related entries
+    if (game && game.status === 'active') {
+        data["Owned By"] = owner ? (await Client.getInstance().users.fetch(owner)).username : 'Nobody';
+    }
+
+    return Object.entries(data).reduce((acc, curr) => acc + `- **${curr[0]}**: ${curr[1]}\n`, '');
 }
