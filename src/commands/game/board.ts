@@ -4,7 +4,6 @@ import { buildBoardEmbed } from '../../utils/embeds/buildBoardEmbed';
 import { drawBoard } from '../../utils/drawBoard';
 import { Player } from '../../db/tables/Player';
 import { getCurrentGameOrFail, handleCommandError } from '../../utils/validations';
-import Client from '../../models/classes/Client';
 
 const command: Command = {
     data: new SlashCommandBuilder()

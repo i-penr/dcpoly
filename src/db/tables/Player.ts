@@ -2,12 +2,11 @@ import { CreationOptional, DataTypes, ForeignKey, InferAttributes, InferCreation
 import { sequelize } from "../db";
 import { Game } from "./Game";
 import { User } from "./User";
-import { Square } from "./Square";
 
 interface Player extends Model<InferAttributes<Player>, InferCreationAttributes<Player>> {
     gameId: ForeignKey<Game['id']>;
     userId: ForeignKey<User['id']>;
-    current_square: CreationOptional<ForeignKey<Square['id']>>;
+    current_square: CreationOptional<number>;
     money: CreationOptional<number>;
     jailStatus: CreationOptional<-1 | 0 | 1 | 2 | 3>; // -1, not in jail; 0,1,2,3 turns in jail
     jailFreeCards: CreationOptional<number>;

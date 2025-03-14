@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { Square } from '../../db/tables/Square';
+import Square from '../../models/interfaces/Square';
 
 export function getSquares(): Square[] {
     return JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'data', 'squares.json'), 'utf-8'));
