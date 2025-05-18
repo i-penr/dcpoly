@@ -54,7 +54,7 @@ const command: Command = {
                         \n \
                         \nYou now have \`${1}\`.`
                     );
-                }
+                } else interaction.followUp('Operation cancelled.');
 
             } else {
                 throw new Error(`You cannot build in color ${selectedProperty.color}. You need to **own all properties in that color** first!`);
