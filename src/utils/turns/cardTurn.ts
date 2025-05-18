@@ -1,7 +1,7 @@
 import { buildTemplateEmbed } from "../embeds/buildTemplateEmbed";
 import { Player } from "../../db/tables/Player";
 import { Game } from "../../db/tables/Game";
-import { goToJail } from "./goToJail";
+import { goToJail } from "../actions/goToJail";
 import fs from 'node:fs';
 import path from "node:path";
 import Card from "../../models/interfaces/Card";

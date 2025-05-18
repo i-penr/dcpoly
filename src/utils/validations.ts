@@ -44,3 +44,12 @@ async function isPlayersTurn(game: Game, playerTurn: Turn): Promise<boolean> {
 async function playerHasRolled(playerTurn: Turn): Promise<boolean> {
     return playerTurn.get('hasRolled');
 }
+
+export async function getAndVerifyAll(interaction: CommandInteraction) {
+    const game = await getCurrentGameOrFail(interaction.guildId!);
+    const player = getPlayerOrFail(game, interaction.user.id);
+    const playerTurn = await getPlayerTurn(game, player);
+
+    await validateTurn(game, playerTurn);
+    return { player, playerTurn, game };
+}
