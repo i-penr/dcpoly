@@ -46,15 +46,13 @@ export function setupDatabaseAssociations() {
     // Property-Player 1:N
     Player.hasMany(PropertyGame, {
         foreignKey: 'ownerId',
+        as: 'properties',
+        sourceKey: 'userId'
     });
     PropertyGame.belongsTo(Player, {
-        foreignKey: 'ownerId'
-    });
-    Player.hasMany(PropertyGame, {
-        foreignKey: 'gameId'
-    });
-    PropertyGame.belongsTo(Player, {
-        foreignKey: 'gameId'
+        foreignKey: 'ownerId',
+        as: 'owner',
+        targetKey: 'userId'
     });
 
     // Property-Game 1:N

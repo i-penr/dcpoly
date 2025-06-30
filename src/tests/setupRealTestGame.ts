@@ -16,7 +16,7 @@ export async function setupTestGame() {
         { id: '540270864143220805' }
     ]);
     await Player.bulkCreate([
-        { gameId: 1, userId: '220525113404030987' },
+        { gameId: 1, userId: '220525113404030987', money: 0, net_worth: 0 },
         { gameId: 1, userId: '540270864143220805' }
     ]);
      await Turn.bulkCreate([{
@@ -32,10 +32,7 @@ export async function setupTestGame() {
     ]);
     const properties = getProperties();
 
-    PropertyGame.create({ id: properties.pop()!.id, ownerId: '220525113404030987', gameId: 1 })
-    PropertyGame.create({ id: properties.pop()!.id, ownerId: '220525113404030987', gameId: 1 })
-
     properties.forEach(({ id }: { id: number }) => {
-        PropertyGame.create({ id: id, gameId: 1 });
+        PropertyGame.create({ id: id, gameId: 1, ownerId: '540270864143220805' });
     });
 }

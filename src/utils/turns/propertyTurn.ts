@@ -6,10 +6,11 @@ import { getPropertyFromId, createPropertyPromptActionRow } from "../actions/pro
 import Square from "../../models/interfaces/Square";
 import { Game } from "../../db/tables/Game";
 import DiscordResponse from "../../models/classes/DiscordResponse";
+import { Turn } from "../../db/tables/Turn";
 
 export async function propertyTurn(square: Square, game: Game, responseBuilder: DiscordResponse, player: Player) {
     const property: Property = getPropertyFromId(square.id);
-    const propertyGame = await PropertyGame.findOne({ where: { gameId: game.id, id: property.id }, include: Player });
+    const propertyGame = await PropertyGame.findOne({ where: { gameId: game.id, id: property.id }, include: { model: Player, as: 'owner' }, logging: console.log });
 
     if (!property || !propertyGame) throw new Error('Property does not exist (internal error).');
 
@@ -37,7 +38,7 @@ export async function propertyTurn(square: Square, game: Game, responseBuilder: 
                 This property is owned by ${ownerName}.\n
                 You will need to pay them \`${rent}\`$ for rent.
             `);
-        } else {
+        } else if (player.net_worth - rent >= 0) {
             responseBuilder.embeds[0].setDescription(`
                 You need to pay ${ownerName} \`${rent}\`,
                 but you don\'t have enough money. Money left: \`${player.money}\`.
@@ -45,6 +46,18 @@ export async function propertyTurn(square: Square, game: Game, responseBuilder: 
                 You need \`${player.money - rent}\` to pay your debts. Mortgage owned properties,
                 or sell any built buildings, if any. Or else go bankrupt and lose the game.
             `);
+        } else {
+            responseBuilder.embeds[0].setDescription(`
+                You need to pay ${ownerName} \`${rent}\`,
+                but you don\'t have enough money. Money left: \`${player.money}\`.
+
+                Your owned properties and buildings aren't enough to cover your debt, so you are
+                about to be declared **bankrupt**.
+
+                **You are out of the game**.
+            `);
+
+            await Turn.destroy({ where: { userId: player.userId, gameId: game.id } })
         }
 
         await player.update({ money: player.money - rent, net_worth: player.net_worth - rent });
