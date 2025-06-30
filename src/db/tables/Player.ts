@@ -8,6 +8,7 @@ interface Player extends Model<InferAttributes<Player>, InferCreationAttributes<
     userId: ForeignKey<User['id']>;
     current_square: CreationOptional<number>;
     money: CreationOptional<number>;
+    net_worth: CreationOptional<number>;
     jailStatus: CreationOptional<-1 | 0 | 1 | 2 | 3>; // -1, not in jail; 0,1,2,3 turns in jail
     jailFreeCards: CreationOptional<number>;
     doubleRollStreak: CreationOptional<number>;
@@ -37,6 +38,13 @@ const Player = sequelize.define<Player>('players', {
         allowNull: false
     },
     money: {
+        type: DataTypes.INTEGER,
+        defaultValue: 1500,
+        allowNull: false
+    },
+    // Total amount of money a player has, including properties & buildings
+    // Used to calculate bankruptcy
+    net_worth: {
         type: DataTypes.INTEGER,
         defaultValue: 1500,
         allowNull: false

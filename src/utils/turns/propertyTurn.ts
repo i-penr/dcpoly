@@ -29,10 +29,25 @@ export async function propertyTurn(square: Square, game: Game, responseBuilder: 
     if (player.userId === owner.userId) {
         responseBuilder.embeds[0].setDescription(`This property is owned by you. Enjoy your stay!`);
     } else {
-        responseBuilder.embeds[0].setDescription(`This property is owned by ${await Client.getInstance().users.fetch(owner.userId)}.\n
-                    You will need to pay them \`${rent}\`$ for rent.`);
+        const userHasEnoughMoney = player.money - rent >= 0;
+        const ownerName = await Client.getInstance().users.fetch(owner.userId);
 
-        await player.update({ money: player.money - rent });
-        await owner.update({ money: owner!.money + rent });
+        if (userHasEnoughMoney) {
+            responseBuilder.embeds[0].setDescription(`
+                This property is owned by ${ownerName}.\n
+                You will need to pay them \`${rent}\`$ for rent.
+            `);
+        } else {
+            responseBuilder.embeds[0].setDescription(`
+                You need to pay ${ownerName} \`${rent}\`,
+                but you don\'t have enough money. Money left: \`${player.money}\`.
+
+                You need \`${player.money - rent}\` to pay your debts. Mortgage owned properties,
+                or sell any built buildings, if any. Or else go bankrupt and lose the game.
+            `);
+        }
+
+        await player.update({ money: player.money - rent, net_worth: player.net_worth - rent });
+        await owner.update({ money: owner!.money + rent, net_worth: player.net_worth + rent });
     }
 }

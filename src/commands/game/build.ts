@@ -166,7 +166,7 @@ async function buyBuildings(buyer: Player, propertyGame: PropertyGame, finalNumB
     if (userMoneyLeft < 0) throw new Error(`User does not have enough money:\nMoney Left: \`${buyer.money}\``);
 
     await propertyGame.update({ numBuildings: finalNumBuildings });
-    await buyer.update({ money: userMoneyLeft });
+    await buyer.update({ money: userMoneyLeft, net_worth: buyer.net_worth + cost/2 });
 }
 
 export { command };

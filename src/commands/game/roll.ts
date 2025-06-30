@@ -1,7 +1,6 @@
 import {
     ButtonStyle,
     CommandInteraction,
-    ComponentType,
     MessagePayload,
     SlashCommandBuilder,
 } from "discord.js";
@@ -97,7 +96,7 @@ async function handleSquareAction(player: Player, square: Square, game: Game): P
         .setTitle(`You landed on \`${square.name}\``);
 
     if (square.cost) {
-        await player.update({ money: player.get('money') - square.cost });
+        await player.update({ money: player.money - square.cost, net_worth: player.net_worth - square.cost });
     }
 
     switch (square.type) {
