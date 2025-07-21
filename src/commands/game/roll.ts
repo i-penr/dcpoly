@@ -1,6 +1,6 @@
 import {
     ButtonStyle,
-    CommandInteraction,
+    ChatInputCommandInteraction,
     MessagePayload,
     SlashCommandBuilder,
 } from "discord.js";
@@ -27,7 +27,7 @@ const command: Command = {
     data: new SlashCommandBuilder()
         .setName("roll")
         .setDescription("Rolls the dice!"),
-    async execute(interaction: CommandInteraction) {
+    async execute(interaction: ChatInputCommandInteraction) {
         try {
             const { player, playerTurn, game } = await getAndVerifyAll(interaction);
             const { result1, result2 } = rollDices();
@@ -130,7 +130,7 @@ async function handleSquareAction(player: Player, square: Square, game: Game): P
     return responseBuilder;
 }
 
-async function handleButtonInteractions(interaction: CommandInteraction, responseBuilder: DiscordResponse, square: Square, player: Player): Promise<void> {
+async function handleButtonInteractions(interaction: ChatInputCommandInteraction, responseBuilder: DiscordResponse, square: Square, player: Player): Promise<void> {
     const collector = createButtonCollector(responseBuilder.response!, interaction);
 
     collector?.on('end', _collected => {

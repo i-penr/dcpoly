@@ -1,4 +1,4 @@
-import { CommandInteraction, SlashCommandBuilder, User } from 'discord.js';
+import { ChatInputCommandInteraction, SlashCommandBuilder, User } from 'discord.js';
 import Command from '../../models/interfaces/Command';
 import { buildErrorEmbed } from '../../utils/embeds/buildErrorEmbedResponse';
 import { Player } from '../../db/tables/Player';
@@ -13,7 +13,7 @@ const command: Command = {
             option.setName('player')
                 .setDescription('The name of the player you want to see.')
         ),
-    async execute(interaction: CommandInteraction) {
+    async execute(interaction: ChatInputCommandInteraction) {
         try {
             const game = await getCurrentGameOrFail(interaction.guildId!);
 
@@ -35,7 +35,7 @@ const command: Command = {
     },
 }
 
-function buildInfoEmbed(player: Player, interaction: CommandInteraction, players: Player[]) {
+function buildInfoEmbed(player: Player, interaction: ChatInputCommandInteraction, players: Player[]) {
     const infoEmbed = buildTemplateEmbed()
         .setTitle(`${interaction.user.username}'s info`)
         .setThumbnail(interaction.user.avatarURL())

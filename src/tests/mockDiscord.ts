@@ -1,5 +1,5 @@
 import { jest, spyOn } from "bun:test";
-import { Collection, CommandInteraction, Guild, User } from "discord.js";
+import { Collection, ChatInputCommandInteraction, Guild, User } from "discord.js";
 import Command from "../models/interfaces/Command";
 import path from "path";
 import fs from 'fs';
@@ -10,7 +10,7 @@ const client = Client.getInstance();
 export default class MockDiscord {
   private client!: Client;
   private user!: User;
-  public interaction!: CommandInteraction;
+  public interaction!: ChatInputCommandInteraction;
   public guild!: Guild;
 
   constructor(command: string, options: { getUser: () => User }) {
@@ -21,7 +21,7 @@ export default class MockDiscord {
     this.mockCommands();
   }
 
-  public getInteraction(): CommandInteraction {
+  public getInteraction(): ChatInputCommandInteraction {
     return this.interaction;
   }
 
@@ -74,7 +74,7 @@ export default class MockDiscord {
   private mockInteraction(command: string, options: any): void {
     if (!command) return;
 
-    this.interaction = Reflect.construct(CommandInteraction, [
+    this.interaction = Reflect.construct(ChatInputCommandInteraction, [
       this.client, {
         data: command,
         id: BigInt(1),
@@ -117,7 +117,7 @@ export default class MockDiscord {
 
 export async function mockInteractionAndSpyReply(command: string, options?: any) {
   const discord = new MockDiscord(command, options);
-  const interaction = discord.getInteraction() as CommandInteraction;
+  const interaction = discord.getInteraction() as ChatInputCommandInteraction;
 
   const spy = spyOn(interaction, 'reply')
   const commands = discord.getCommands();

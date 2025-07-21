@@ -1,4 +1,4 @@
-import { CommandInteraction } from "discord.js";
+import { ChatInputCommandInteraction } from "discord.js";
 import { Game } from "../db/tables/Game";
 import { Player } from "../db/tables/Player";
 import { Turn } from "../db/tables/Turn";
@@ -28,7 +28,7 @@ export async function validateTurn(game: Game, playerTurn: Turn): Promise<void> 
     if (await playerHasRolled(playerTurn)) throw new Error('You have already rolled. Finish your turn by clicking the `End Turn` button');
 }
 
-export function handleCommandError(interaction: CommandInteraction, error: Error): void {
+export function handleCommandError(interaction: ChatInputCommandInteraction, error: Error): void {
     if (interaction.replied || interaction.deferred) {
         interaction.followUp({ ...buildErrorEmbed(interaction, error.message), ephemeral: true });
     } else {
@@ -45,7 +45,7 @@ async function playerHasRolled(playerTurn: Turn): Promise<boolean> {
     return playerTurn.get('hasRolled');
 }
 
-export async function getAndVerifyAll(interaction: CommandInteraction) {
+export async function getAndVerifyAll(interaction: ChatInputCommandInteraction) {
     const game = await getCurrentGameOrFail(interaction.guildId!);
     const player = getPlayerOrFail(game, interaction.user.id);
     const playerTurn = await getPlayerTurn(game, player);

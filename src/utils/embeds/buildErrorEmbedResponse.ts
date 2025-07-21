@@ -1,6 +1,6 @@
-import { AttachmentBuilder, CommandInteraction, EmbedBuilder } from "discord.js";
+import { AttachmentBuilder, ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
 
-export const buildErrorEmbed = (interaction: CommandInteraction, errMsg: string): { embeds: EmbedBuilder[], files: AttachmentBuilder[] } => {
+export const buildErrorEmbed = (interaction: ChatInputCommandInteraction, errMsg: string): { embeds: EmbedBuilder[], files: AttachmentBuilder[] } => {
     const file = new AttachmentBuilder('./assets/error.png');
 
     const errorEmbed = new EmbedBuilder()

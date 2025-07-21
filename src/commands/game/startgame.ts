@@ -1,4 +1,4 @@
-import { CommandInteraction, SlashCommandBuilder} from "discord.js";
+import { ChatInputCommandInteraction, SlashCommandBuilder} from "discord.js";
 import Command from '../../models/interfaces/Command';
 import { Turn } from "../../db/tables/Turn";
 import { getGameFromGuildWithStatus } from "../../utils/database";
@@ -10,7 +10,7 @@ const command: Command = {
     data: new SlashCommandBuilder()
             .setName('startgame')
             .setDescription('Start a game with the status new.'),
-    async execute(interaction: CommandInteraction) {
+    async execute(interaction: ChatInputCommandInteraction) {
         try {
             const game = await getGameFromGuildWithStatus(interaction.guildId!, 'new');
 

@@ -1,4 +1,4 @@
-import { CommandInteraction, SlashCommandBuilder } from 'discord.js';
+import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
 import Command from '../../models/interfaces/Command';
 import { handleCommandError } from '../../utils/validations';
 import { buildPropertyEmbed } from '../../utils/embeds/buildPropertyEmbed';
@@ -23,7 +23,7 @@ const command: Command = {
 
             return option;
         }),
-    async execute(interaction: CommandInteraction) {
+    async execute(interaction: ChatInputCommandInteraction) {
         try {
             const selectedProperty = getPropertyFromId(await (interaction.options as any).getInteger('property-name'));
             const game = await getGameFromGuildWithStatus(interaction.guildId!, 'active');

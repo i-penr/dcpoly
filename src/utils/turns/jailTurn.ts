@@ -1,7 +1,7 @@
-import { CommandInteraction, AttachmentBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, Interaction, InteractionResponse } from "discord.js";
+import { ChatInputCommandInteraction, AttachmentBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, Interaction, InteractionResponse } from "discord.js";
 import { Player } from "../../db/tables/Player";
 
-export async function promptJailActionAndCheckIfPlays(player: Player, interaction: CommandInteraction, result1: number, result2: number) {
+export async function promptJailActionAndCheckIfPlays(player: Player, interaction: ChatInputCommandInteraction, result1: number, result2: number) {
     const jailedIcon = new AttachmentBuilder('./assets/jailed.png');
     const jailEmbed = new EmbedBuilder()
         .setTitle('You are in `jail`. What do you want to do?')
