@@ -2,6 +2,8 @@ import { User } from "../db/tables/User";
 import { Game } from "../db/tables/Game";
 import { Player } from "../db/tables/Player";
 import { Turn } from "../db/tables/Turn";
+import { getProperties } from "../utils/actions/propertyActions";
+import { PropertyGame } from "../db/tables/PropertyGame";
 
 /**
  * This is for the bun/jest tests.
@@ -33,4 +35,10 @@ export async function setupFakeTestGame() {
         userId: secondId
     }
     ]);
+
+    const properties = getProperties();
+
+    properties.forEach(({ id }: { id: number }) => {
+        PropertyGame.create({ id: id, gameId: 1 });
+    });
 }

@@ -58,7 +58,7 @@ export default class MockDiscord {
   private mockUser(): void {
     this.user = Reflect.construct(User, [
       this.client, {
-        id: process.env.AUTHOR_ID,
+        id: process.env.AUTHOR_ID!,
         username: "test-user",
         discriminator: "test-user#0000",
         avatar: "avatar",
