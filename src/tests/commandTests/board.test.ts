@@ -23,7 +23,6 @@ describe('/board command tests', () => {
         spy = await mockInteractionAndSpyReply('board');
         const reply = spy.mock.calls[0][0];
 
-        console.log(reply.embeds[0].data.title)
         expect(reply.embeds[0].data.title).toMatch(/.*\'s board - Game #.*/);
     });
 

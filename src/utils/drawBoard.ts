@@ -1,8 +1,6 @@
 import { AttachmentBuilder } from "discord.js";
 import Canvas from '@napi-rs/canvas';
 import path from "node:path";
-import { request } from "undici";
-import BodyReadable from "undici/types/readable";
 import { Player } from "../db/tables/Player";
 import Client from "../models/classes/Client";
 
@@ -19,15 +17,16 @@ export async function drawBoard(players: Player[]) {
 
     for (let player of players) {
         const dcUser = await Client.getInstance().users.fetch(player.get('userId'));
-        const { body } = await request(dcUser.displayAvatarURL({ extension: 'jpg' }));
-        await drawToken(context, body, player.get('current_square'));
+        const avatarUrl = dcUser.displayAvatarURL({ extension: 'png' });
+
+        const avatar = await Canvas.loadImage(avatarUrl);
+        await drawToken(context, avatar, player.get('current_square'));
     }
 
     return new AttachmentBuilder(await canvas.encode('png'), { name: 'board.png' });
 }
 
-async function drawToken(context: Canvas.SKRSContext2D, body: BodyReadable, square: number) {
-    const avatar = await Canvas.loadImage(await body.arrayBuffer());
+async function drawToken(context: Canvas.SKRSContext2D, avatar: Canvas.Image, square: number) {
     const coords = getCoords(square);
     context.save();
     circle(context, coords);

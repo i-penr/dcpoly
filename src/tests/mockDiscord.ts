@@ -64,10 +64,11 @@ export default class MockDiscord {
         avatar: "avatar",
         bot: false,
         displayName: "testUser",
-        avatarURL: "avatarURL"
+        avatarURL: "avatarURL",
       }
     ]);
     this.client.users.cache.set(this.user.id, this.user);
+    this.user.displayAvatarURL = () => 'https://cdn.discordapp.com/embed/avatars/0.png'
   }
 
   private mockInteraction(command: string, options: any): void {
