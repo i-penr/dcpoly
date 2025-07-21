@@ -44,7 +44,10 @@ const command: Command = {
             const { actualNumBuildings, finalNumBuildings, totalCost } = calculateOperationDetails(propertyInGame, chosenNumBuildings, selectedProperty);
             const willBuild = await promptBuy(selectedProperty, actualNumBuildings, finalNumBuildings, totalCost, interaction);
 
-            if (!willBuild) interaction.followUp('Operation cancelled.');
+            if (!willBuild) { 
+                interaction.followUp('Operation cancelled.');
+                return;
+            }
 
             const player = await Player.findOne({ where: { gameId: game.id, userId: interaction.user.id } });
 
@@ -149,6 +152,7 @@ function handleButtonInteractions(responseBuilder: DiscordResponse, interaction:
                 }
             } catch (e: any) {
                 collector.stop();
+                return resolve(false);
             }
         });
 
