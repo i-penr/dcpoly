@@ -73,7 +73,7 @@ async function getPropertyData(game: Game, interaction: ChatInputCommandInteract
     const propertyInGame = await PropertyGame.findOne({ where: { gameId: game.id, ownerId: interaction.user.id, id: selectedPropertyId } });
 
     if (!propertyInGame) {
-        throw new Error(`Sorry! You don\'t own this property in the current game (game #${game.id})`);
+        throw new Error(`Sorry! You don\'t own property \`${selectedProperty.name}\` in the current game (game #${game.id})`);
     }
 
     return { propertyInGame, selectedProperty };
@@ -100,7 +100,7 @@ async function promptBuy(selectedProperty: Property, actualNumBuildings: any, fi
 
 function buildConfirmationResponse(selectedProperty: Property, actualNumBuildings: 0 | 1 | 2 | 3 | 4 | 5, finalNumBuildings: 0 | 1 | 2 | 3 | 4 | 5, totalCost: number) {
     const bulidEmbed = buildTemplateEmbed()
-        .setTitle(`Building summary in ${selectedProperty.name}`)
+        .setTitle(`Building summary in \`${selectedProperty.name}\``)
         .setDescription(`
             You want to build \`${actualNumBuildings}\` house${actualNumBuildings === 1 ? '' : 's'} in \`${selectedProperty.name}\`
             Your property will have ${finalNumBuildings === 5 ? '1 hotel' : `${finalNumBuildings} house${finalNumBuildings === 1 ? '' : 's'}`}

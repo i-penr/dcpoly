@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "bun:test";
+import { beforeEach, describe, expect, it, test } from "bun:test";
 import { mockDb } from "../mockDb";
 import { Game } from "../../db/tables/Game";
 import { mockInteractionAndSpyReply } from "../mockDiscord";
@@ -54,37 +54,35 @@ describe('/build command tests', async () => {
         expect(reply.embeds[0].data.title).toMatch(/Building summary in \`([^`]+)\`/);
     });
 
-    it('should cancel the operation (user selected \'No\')', async () => {
+    test.todo('should cancel the operation (user selected \'No\')', async () => {
         // Author owns all Brown properties
         (await PropertyGame.findOne({ where: { gameId: process.env.GAME_ID, id: 1 } }))?.update({ ownerId: process.env.AUTHOR_ID });
         (await PropertyGame.findOne({ where: { gameId: process.env.GAME_ID, id: 3 } }))?.update({ ownerId: process.env.AUTHOR_ID });
 
         spy = await mockInteractionAndSpyReply('build', { getInteger: () => 1 });
-        const reply = spy.mock.calls[0][0];
-        expect(reply.embeds[0].data.description).toBe(`There is already a game with the status *new* or *active* on this server.\n**Finish** the game first before creating a new one.`);
     });
 
-    it('should cancel the operation (prompt timeout)', async () => {
-        (await Game.findByPk(process.env.GAME_ID))?.update({ status: 'new' });
+    test.todo('should cancel the operation (prompt timeout)', async () => {
+        // Author owns all Brown properties
+        (await PropertyGame.findOne({ where: { gameId: process.env.GAME_ID, id: 1 } }))?.update({ ownerId: process.env.AUTHOR_ID });
+        (await PropertyGame.findOne({ where: { gameId: process.env.GAME_ID, id: 3 } }))?.update({ ownerId: process.env.AUTHOR_ID });
 
-        spy = await mockInteractionAndSpyReply('newgame');
-        const reply = spy.mock.calls[0][0];
-        expect(reply.embeds[0].data.description).toBe(`There is already a game with the status *new* or *active* on this server.\n**Finish** the game first before creating a new one.`);
+        spy = await mockInteractionAndSpyReply('build', { getInteger: () => 1 });
     });
 
-    it('should error (user does not have enough money to build)', async () => {
-        (await Game.findByPk(process.env.GAME_ID))?.update({ status: 'new' });
+    test.todo('should error (user does not have enough money to build)', async () => {
+        // Author owns all Brown properties
+        (await PropertyGame.findOne({ where: { gameId: process.env.GAME_ID, id: 1 } }))?.update({ ownerId: process.env.AUTHOR_ID });
+        (await PropertyGame.findOne({ where: { gameId: process.env.GAME_ID, id: 3 } }))?.update({ ownerId: process.env.AUTHOR_ID });
 
-        spy = await mockInteractionAndSpyReply('newgame');
-        const reply = spy.mock.calls[0][0];
-        expect(reply.embeds[0].data.description).toBe(`There is already a game with the status *new* or *active* on this server.\n**Finish** the game first before creating a new one.`);
+        spy = await mockInteractionAndSpyReply('build', { getInteger: () => 1 });
     });
 
-    it('should add a building to property and remove money from user', async () => {
-        (await Game.findByPk(process.env.GAME_ID))?.update({ status: 'new' });
+    test.todo('should add a building to property and remove money from user', async () => {
+       // Author owns all Brown properties
+       (await PropertyGame.findOne({ where: { gameId: process.env.GAME_ID, id: 1 } }))?.update({ ownerId: process.env.AUTHOR_ID });
+       (await PropertyGame.findOne({ where: { gameId: process.env.GAME_ID, id: 3 } }))?.update({ ownerId: process.env.AUTHOR_ID });
 
-        spy = await mockInteractionAndSpyReply('newgame');
-        const reply = spy.mock.calls[0][0];
-        expect(reply.embeds[0].data.description).toBe(`There is already a game with the status *new* or *active* on this server.\n**Finish** the game first before creating a new one.`);
+       spy = await mockInteractionAndSpyReply('build', { getInteger: () => 1 });
     });
 });
