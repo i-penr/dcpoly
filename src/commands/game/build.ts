@@ -7,7 +7,7 @@ import { PropertyGame } from "../../db/tables/PropertyGame";
 import { buildTemplateEmbed } from "../../utils/embeds/buildTemplateEmbed";
 import DiscordResponse from "../../models/classes/DiscordResponse";
 import { Player } from "../../db/tables/Player";
-import { getPropertyData, promptOperation, setUpConfirmationButtons } from "../../utils/ownedPropertyOperations";
+import { getPropertyData, promptOperation } from "../../utils/ownedPropertyOperations";
 import { Game } from "../../db/tables/Game";
 
 const properties = getProperties();
@@ -100,7 +100,6 @@ function buildConfirmationResponse(selectedProperty: Property, actualNumBuilding
         .setThumbnail('attachment://build.png');
 
     const responseBuilder = new DiscordResponse([bulidEmbed], [buildingIcon]);
-    responseBuilder.addButtons(...setUpConfirmationButtons());
     return responseBuilder;
 }
 

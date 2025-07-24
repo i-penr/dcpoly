@@ -34,6 +34,7 @@ export function setUpConfirmationButtons(): ButtonData[] {
 }
 
 export async function promptOperation(responseBuilder: DiscordResponse, interaction: ChatInputCommandInteraction) {
+    responseBuilder.addButtons(...setUpConfirmationButtons());
     responseBuilder.response = await interaction.reply(responseBuilder.generateResponsePayload());
     const willBuild = await handleButtonInteractions(responseBuilder, interaction);
     responseBuilder.response.edit({ components: [] });

@@ -5,7 +5,7 @@ import Property from "../../models/interfaces/Property";
 import { getCurrentGameOrFail, handleCommandError } from "../../utils/validations";
 import { PropertyGame } from "../../db/tables/PropertyGame";
 import { Op } from "sequelize";
-import { getPropertyData, promptOperation, setUpConfirmationButtons } from "../../utils/ownedPropertyOperations";
+import { getPropertyData, promptOperation } from "../../utils/ownedPropertyOperations";
 import { buildTemplateEmbed } from "../../utils/embeds/buildTemplateEmbed";
 import DiscordResponse from "../../models/classes/DiscordResponse";
 import { Player } from "../../db/tables/Player";
@@ -75,7 +75,6 @@ function buildConfirmationResponse(selectedProperty: Property) {
         .setThumbnail('attachment://mortgage.png');
 
     const responseBuilder = new DiscordResponse([mortgageEmbed], [mortgageIcon]);
-    responseBuilder.addButtons(...setUpConfirmationButtons());
     return responseBuilder;
 }
 
