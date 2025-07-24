@@ -2,10 +2,11 @@ import { ChatInputCommandInteraction, AttachmentBuilder, EmbedBuilder, ButtonSty
 import { Player } from "../../db/tables/Player";
 import DiscordResponse from "../../models/classes/DiscordResponse";
 import { createButtonCollector } from "../createButtonCollector";
+import { buildTemplateEmbed } from "../embeds/buildTemplateEmbed";
 
 export async function promptJailActionAndCheckIfPlays(player: Player, interaction: ChatInputCommandInteraction, result1: number, result2: number) {
     const jailedIcon = new AttachmentBuilder('./assets/jailed.png');
-    const jailEmbed = new EmbedBuilder()
+    const jailEmbed = buildTemplateEmbed()
         .setTitle('You are in `jail`. What do you want to do?')
         .setColor('Orange')
         .setThumbnail('attachment://jailed.png')
