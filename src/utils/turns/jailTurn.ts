@@ -1,5 +1,7 @@
-import { ChatInputCommandInteraction, AttachmentBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, Interaction, InteractionResponse } from "discord.js";
+import { ChatInputCommandInteraction, AttachmentBuilder, EmbedBuilder, ButtonStyle, ActionRowBuilder, ButtonBuilder } from "discord.js";
 import { Player } from "../../db/tables/Player";
+import DiscordResponse from "../../models/classes/DiscordResponse";
+import { createButtonCollector } from "../createButtonCollector";
 
 export async function promptJailActionAndCheckIfPlays(player: Player, interaction: ChatInputCommandInteraction, result1: number, result2: number) {
     const jailedIcon = new AttachmentBuilder('./assets/jailed.png');
@@ -7,75 +9,100 @@ export async function promptJailActionAndCheckIfPlays(player: Player, interactio
         .setTitle('You are in `jail`. What do you want to do?')
         .setColor('Orange')
         .setThumbnail('attachment://jailed.png')
-        .setDescription(`You have \`${player.get('jailStatus')}\` turns remaining in jail
-                         You have \`${player.get('money')}$\`
-                         You have \`${player.get('jailFreeCards')}\` "Get Out Of Jail Free" cards.`)
+        .setDescription(`You have \`${player.jailStatus}\` turns remaining in jail
+                         You have \`${player.money}$\`
+                         You have \`${player.jailFreeCards}\` "Get Out Of Jail Free" cards.`)
         .setAuthor({ name: interaction.user.displayName, iconURL: interaction.user.avatarURL()! })
         .setTimestamp();
 
-    const rollDiceButton = new ButtonBuilder()
-        .setCustomId('rollDices')
-        .setLabel('Roll dices (Doubles = out of jail)')
-        .setStyle(ButtonStyle.Primary);
+    const buttons = [
+        {
+            id: 'rollDices',
+            label: 'Roll dices (Doubles = out of jail)',
+            style: ButtonStyle.Primary
+        },
+        {
+            id: 'payUp',
+            label: 'Pay 50 to get out',
+            style: ButtonStyle.Primary,
+            disabled: player.money < 50
+        },
+        {
+            id: 'getOutOfJailFreeCard',
+            label: 'Use "Get Out Of Jail Free" card',
+            style: ButtonStyle.Primary,
+            disabled: player.jailFreeCards === 0
+        }
+    ]
 
-    const payUpButton = new ButtonBuilder()
-        .setCustomId('payUp')
-        .setLabel('Pay 50$ to get out')
-        .setStyle(ButtonStyle.Primary)
-        .setDisabled(player.get('money') < 50);
+    const responseBuilder = new DiscordResponse([jailEmbed], [jailedIcon]);
+    responseBuilder.addButtons(...buttons)
+    responseBuilder.response = await interaction.followUp(responseBuilder.generateResponsePayload());
 
-    const getOutOfJailFreeCardButton = new ButtonBuilder()
-        .setCustomId('getOutOfJailFreeCard')
-        .setLabel('Use "Get Out Of Jail Free" card')
-        .setStyle(ButtonStyle.Primary)
-        .setDisabled(player.jailFreeCards === 0);
-
-    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(rollDiceButton, payUpButton, getOutOfJailFreeCardButton);
-    return await waitForJailResponse(await interaction.reply({ embeds: [jailEmbed], files: [jailedIcon], components: [row] }), player, jailEmbed, result1, result2);
+    return await waitForJailResponse(responseBuilder, player, result1, result2, interaction);
 }
 
-async function waitForJailResponse(response: InteractionResponse, player: Player, jailEmbed: EmbedBuilder, result1: number, result2: number) {
-    let title: string = '', description: string = 'You are now out of jail';
+async function waitForJailResponse(responseBuilder: DiscordResponse, player: Player, result1: number, result2: number, interaction: ChatInputCommandInteraction) {
+
+    let description: string = 'You are now out of jail';
     let continuesPlaying = true;
 
-    try {
-        const confirmation = await response.awaitMessageComponent({
-            filter: (i: Interaction) => i.user.id === response.interaction.user.id,
-            time: 60000,
-        });
+    let title = await handleButtonInteractions(responseBuilder, interaction, player);
 
-        switch (confirmation.customId) {
-            case 'payUp':
-                await player.update({ money: player.get('money') - 50, jailStatus: -1 });
-                title = 'You paid `50$`.';
-                break;
-            case 'getOutOfJailFreeCard':
-                await player.update({ jailFreeCards: player.get('jailFreeCards') - 1, jailStatus: -1 });
-                title = 'Get Out Of Jail Free" card used';
-                break;
-            case 'rollDices': default:
-                throw 'DefaultCase';
-        }
-    } catch {
+    responseBuilder.response?.edit({ components: [] });
+
+    if (!title) {
         title = 'You chose: \`Roll Dices\`';
         description = `You rolled a \`${result1}\` and a \`${result2}\``;
 
         if (result1 === result2) {
-            await player.update({ doubleRollStreak: player.get('doubleRollStreak') + 1 });
+            await player.update({ doubleRollStreak: player.doubleRollStreak + 1 });
             description += '\nYou got doubles! You are free to go!';
         } else {
-            const newJailStatus = player.get('jailStatus') - 1 as -1; // yikes
+            const newJailStatus = player.jailStatus - 1 as -1; // yikes
             continuesPlaying = false;
 
             await player.update({ jailStatus: newJailStatus });
-            description += `\nYou didn\'t roll doubles. You still have \`${newJailStatus}\` turns left in jail.`;
+            description += `\nYou didn\'t roll doubles. You have \`${newJailStatus + 1}\` turns left in jail.`;
         }
-    } finally {
-        jailEmbed.setTitle(title);
-        jailEmbed.setDescription(description);
-
-        await response.edit({ embeds: [jailEmbed], components: [] });
-
-        return continuesPlaying;
     }
+
+    responseBuilder.embeds[0].setTitle(title);
+    responseBuilder.embeds[0].setDescription(description);
+    responseBuilder.actionRow = new ActionRowBuilder<ButtonBuilder>();
+
+    await interaction.followUp(responseBuilder.generateResponsePayload());
+
+    return continuesPlaying;
+}
+
+function handleButtonInteractions(responseBuilder: DiscordResponse, interaction: ChatInputCommandInteraction, player: Player): Promise<string> {
+    return new Promise((resolve) => {
+        const collector = createButtonCollector(responseBuilder.response!, interaction);
+
+        collector?.on('collect', async (b: { customId: any; }) => {
+            switch (b.customId) {
+                case 'payUp':
+                    handlePayUpOption(player)
+                    return resolve('You paid `50$`.');
+                case 'getOutOfJailFreeCard':
+                    handleGetOutOfJailFreeCardOption(player);
+                    return resolve('Get Out Of Jail Free" card used');
+                case 'rollDices': default:
+                    return resolve('')
+            }
+        });
+
+        collector?.on('end', (_collected: any) => {
+            return resolve('')
+        });
+    });
+}
+
+async function handlePayUpOption(player: Player) {
+    await player.update({ money: player.money - 50, net_worth: player.net_worth - 50, jailStatus: -1 });
+}
+
+async function handleGetOutOfJailFreeCardOption(player: Player) {
+    await player.update({ jailFreeCards: player.jailFreeCards - 1, jailStatus: -1 });
 }

@@ -63,7 +63,7 @@ const command: Command = {
 
             const boardImg = await drawBoard(game.players!);
 
-            responseBuilder.response = await interaction.editReply({
+            responseBuilder.response = await interaction.followUp({
                 ...responseBuilder.generateResponsePayload() as MessagePayload,
                 files: [boardImg],
                 content: `You rolled a \`${result1}\` and a \`${result2}\` 🎲`
@@ -148,7 +148,7 @@ async function handleButtonInteractions(interaction: ChatInputCommandInteraction
                     await buyProperty(property, player);
 
                     responseBuilder.actionRow.components[0].setDisabled(true);
-                    await responseBuilder.response?.edit(responseBuilder.generateResponsePayload() as MessagePayload);
+                    await interaction.followUp(responseBuilder.generateResponsePayload() as MessagePayload);
 
                     interaction.followUp(`You bought the property \`${property.name}\` for \`${property.price}$\`.\nYou now have \`${player!.money}$\` left.`);
 
@@ -160,7 +160,7 @@ async function handleButtonInteractions(interaction: ChatInputCommandInteraction
 
                     responseBuilder.actionRow.components[1].setDisabled(true);
                     interaction.followUp({ embeds: [embed], content: 'You clicked on \`See Property Details`:' });
-                    await responseBuilder.response?.edit(responseBuilder.generateResponsePayload() as MessagePayload);
+                    await interaction.followUp(responseBuilder.generateResponsePayload() as MessagePayload);
 
                     break;
                 case 'endTurn': default:

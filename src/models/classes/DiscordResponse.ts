@@ -32,6 +32,6 @@ export default class DiscordResponse {
     }
 
     public generateResponsePayload(): string | MessagePayload | InteractionReplyOptions {
-        return { embeds: this.embeds, components: [this.actionRow], files: this.files };
+        return { embeds: this.embeds, components: this.actionRow.components.length > 0 ? [this.actionRow] : [], files: this.files };
     }
 }
