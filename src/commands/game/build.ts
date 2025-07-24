@@ -41,7 +41,7 @@ const command: Command = {
             const chosenNumBuildings = interaction.options.getInteger('num-buildings') ?? 1;
             const { actualNumBuildings, finalNumBuildings, totalCost } = calculateOperationDetails(propertyInGame, chosenNumBuildings, selectedProperty);
 
-            const responseBuilder = buildConfirmationResponse(selectedProperty, actualNumBuildings, finalNumBuildings, totalCost);
+            const responseBuilder = buildConfirmationResponse(selectedProperty, actualNumBuildings, finalNumBuildings, totalCost, interaction);
             const willBuild = await promptOperation(responseBuilder, interaction);
 
             if (!willBuild) {
@@ -83,7 +83,7 @@ function calculateOperationDetails(propertyInGame: PropertyGame, chosenNumBuildi
     return { actualNumBuildings, finalNumBuildings, totalCost };
 }
 
-function buildConfirmationResponse(selectedProperty: Property, actualNumBuildings: 0 | 1 | 2 | 3 | 4 | 5, finalNumBuildings: 0 | 1 | 2 | 3 | 4 | 5, totalCost: number) {
+function buildConfirmationResponse(selectedProperty: Property, actualNumBuildings: 0 | 1 | 2 | 3 | 4 | 5, finalNumBuildings: 0 | 1 | 2 | 3 | 4 | 5, totalCost: number, interaction: ChatInputCommandInteraction) {
     const buildingIcon = new AttachmentBuilder('./assets/build.png');
     
     const bulidEmbed = buildTemplateEmbed()
@@ -97,6 +97,7 @@ function buildConfirmationResponse(selectedProperty: Property, actualNumBuilding
             Do you want to confirm the operation?`
         )
         .setColor(selectedProperty.color)
+        .setAuthor({ name: interaction.user.displayName, iconURL: interaction.user.avatarURL()! })
         .setThumbnail('attachment://build.png');
 
     const responseBuilder = new DiscordResponse([bulidEmbed], [buildingIcon]);

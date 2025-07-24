@@ -35,7 +35,7 @@ const command: Command = {
 
             await validateOperationConditions(propertyInGame, selectedProperty, game);
 
-            const responseBuilder = buildConfirmationResponse(selectedProperty);
+            const responseBuilder = buildConfirmationResponse(selectedProperty, interaction);
             const willBuild = await promptOperation(responseBuilder, interaction);
 
             if (!willBuild) {
@@ -60,7 +60,7 @@ const command: Command = {
     },
 }
 
-function buildConfirmationResponse(selectedProperty: Property) {
+function buildConfirmationResponse(selectedProperty: Property, interaction: ChatInputCommandInteraction) {
     const mortgageIcon = new AttachmentBuilder('./assets/mortgage.png');
     const mortgageEmbed = buildTemplateEmbed()
         .setTitle(`Mortgage operation summary in \`${selectedProperty.name}\``)
@@ -72,6 +72,7 @@ function buildConfirmationResponse(selectedProperty: Property) {
                  \nDo you want to confirm the operation?`
         )
         .setColor(selectedProperty.color)
+        .setAuthor({ name: interaction.user.displayName, iconURL: interaction.user.avatarURL()! })
         .setThumbnail('attachment://mortgage.png');
 
     const responseBuilder = new DiscordResponse([mortgageEmbed], [mortgageIcon]);
