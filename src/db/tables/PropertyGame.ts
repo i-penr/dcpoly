@@ -10,6 +10,7 @@ interface PropertyGame extends Model<InferAttributes<PropertyGame>, InferCreatio
     ownerId: ForeignKey<User['id']>;
     numBuildings: CreationOptional<0 | 1 | 2 | 3 | 4 | 5>;
     owner?: NonAttribute<Player>;
+    mortgaged: CreationOptional<boolean>;
 }
 
 const PropertyGame = sequelize.define<PropertyGame>('properties', {
@@ -37,6 +38,10 @@ const PropertyGame = sequelize.define<PropertyGame>('properties', {
         type: DataTypes.TINYINT,
         defaultValue: 0,
         allowNull: false
+    },
+    mortgaged: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
     }
 }, { timestamps: false });
 

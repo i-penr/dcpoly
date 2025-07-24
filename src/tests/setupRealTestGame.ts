@@ -16,7 +16,7 @@ export async function setupTestGame() {
         { id: '540270864143220805' }
     ]);
     await Player.bulkCreate([
-        { gameId: 1, userId: '220525113404030987', money: 0, net_worth: 0 },
+        { gameId: 1, userId: '220525113404030987', money: 20000, net_worth: 0 },
         { gameId: 1, userId: '540270864143220805' }
     ]);
      await Turn.bulkCreate([{

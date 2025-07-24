@@ -50,6 +50,7 @@ export function setupDatabaseAssociations() {
     });
     PropertyGame.belongsTo(Player, {
         foreignKey: 'ownerId',
+        as: 'owner',
         targetKey: 'userId'
     });
 

@@ -1,13 +1,13 @@
-import { ButtonStyle, ColorResolvable, SlashCommandBuilder, ChatInputCommandInteraction } from "discord.js";
+import { ColorResolvable, SlashCommandBuilder, ChatInputCommandInteraction, AttachmentBuilder } from "discord.js";
 import Command from '../../models/interfaces/Command';
-import { getProperties, getPropertyFromId } from "../../utils/actions/propertyActions";
+import { getProperties } from "../../utils/actions/propertyActions";
 import Property from "../../models/interfaces/Property";
 import { getCurrentGameOrFail, handleCommandError } from "../../utils/validations";
 import { PropertyGame } from "../../db/tables/PropertyGame";
 import { buildTemplateEmbed } from "../../utils/embeds/buildTemplateEmbed";
-import DiscordResponse, { ButtonData } from "../../models/classes/DiscordResponse";
-import { createButtonCollector } from "../../utils/createButtonCollector";
+import DiscordResponse from "../../models/classes/DiscordResponse";
 import { Player } from "../../db/tables/Player";
+import { getPropertyData, promptOperation, setUpConfirmationButtons } from "../../utils/ownedPropertyOperations";
 import { Game } from "../../db/tables/Game";
 
 const properties = getProperties();
@@ -36,29 +36,29 @@ const command: Command = {
             const game = await getCurrentGameOrFail(interaction.guildId!);
             const { propertyInGame, selectedProperty } = await getPropertyData(game, interaction);
 
-            if (!await userOwnsAllColorInGame(selectedProperty.color, game.id, interaction.user.id)) {
-                throw new Error(`You cannot build in color ${selectedProperty.color}. You need to **own all properties in that color** first!`);
-            }
+            await validateOperationConditions(selectedProperty, game, interaction);
 
-            const chosenNumBuildings = await interaction.options.getInteger('num-buildings') ?? 1;
+            const chosenNumBuildings = interaction.options.getInteger('num-buildings') ?? 1;
             const { actualNumBuildings, finalNumBuildings, totalCost } = calculateOperationDetails(propertyInGame, chosenNumBuildings, selectedProperty);
-            const willBuild = await promptBuy(selectedProperty, actualNumBuildings, finalNumBuildings, totalCost, interaction);
 
-            if (!willBuild) { 
+            const responseBuilder = buildConfirmationResponse(selectedProperty, actualNumBuildings, finalNumBuildings, totalCost);
+            const willBuild = await promptOperation(responseBuilder, interaction);
+
+            if (!willBuild) {
                 interaction.followUp('Operation cancelled.');
                 return;
             }
 
-            const player = await Player.findOne({ where: { gameId: game.id, userId: interaction.user.id } });
+            const player = propertyInGame.owner;
 
             await buyBuildings(player!, propertyInGame, finalNumBuildings, totalCost);
 
             interaction.followUp(`
-                You have built \`${actualNumBuildings}\` houses in \`${selectedProperty.name}\`. \
+                You have built \`${actualNumBuildings}\` houses in \`${selectedProperty.name}\` for \`${totalCost}\`. \
                 \n \
                 \nThe rent for \`${selectedProperty.name}\` has risen to \`${selectedProperty.rentProg[finalNumBuildings]}\`.\
                 \n \
-                \nYou now have \`${1}\`.`
+                \nYou now have \`${propertyInGame.owner?.money}\`.`
             );
 
         } catch (error: any) {
@@ -67,16 +67,11 @@ const command: Command = {
     },
 }
 
-async function getPropertyData(game: Game, interaction: ChatInputCommandInteraction) {
-    const selectedPropertyId = await (interaction.options as any).getInteger('property-name');
-    const selectedProperty = getPropertyFromId(selectedPropertyId);
-    const propertyInGame = await PropertyGame.findOne({ where: { gameId: game.id, ownerId: interaction.user.id, id: selectedPropertyId } });
 
-    if (!propertyInGame) {
-        throw new Error(`Sorry! You don\'t own property \`${selectedProperty.name}\` in the current game (game #${game.id})`);
+async function validateOperationConditions(selectedProperty: Property, game: Game, interaction: ChatInputCommandInteraction) {
+    if (!await userOwnsAllColorInGame(selectedProperty.color, game.id, interaction.user.id)) {
+        throw new Error(`You cannot build in color ${selectedProperty.color}. You need to **own all properties in that color** first!`);
     }
-
-    return { propertyInGame, selectedProperty };
 }
 
 function calculateOperationDetails(propertyInGame: PropertyGame, chosenNumBuildings: any, selectedProperty: Property) {
@@ -88,19 +83,11 @@ function calculateOperationDetails(propertyInGame: PropertyGame, chosenNumBuildi
     return { actualNumBuildings, finalNumBuildings, totalCost };
 }
 
-async function promptBuy(selectedProperty: Property, actualNumBuildings: any, finalNumBuildings: any, totalCost: number, interaction: ChatInputCommandInteraction) {
-    const responseBuilder = buildConfirmationResponse(selectedProperty, actualNumBuildings, finalNumBuildings, totalCost);
-
-    responseBuilder.response = await interaction.reply(responseBuilder.generateResponsePayload());
-    const willBuild = await handleButtonInteractions(responseBuilder, interaction);
-    responseBuilder.response.edit({ components: [] });
-
-    return willBuild;
-}
-
 function buildConfirmationResponse(selectedProperty: Property, actualNumBuildings: 0 | 1 | 2 | 3 | 4 | 5, finalNumBuildings: 0 | 1 | 2 | 3 | 4 | 5, totalCost: number) {
+    const buildingIcon = new AttachmentBuilder('./assets/build.png');
+    
     const bulidEmbed = buildTemplateEmbed()
-        .setTitle(`Building summary in \`${selectedProperty.name}\``)
+        .setTitle(`Build operation summary in \`${selectedProperty.name}\``)
         .setDescription(`
             You want to build \`${actualNumBuildings}\` house${actualNumBuildings === 1 ? '' : 's'} in \`${selectedProperty.name}\`
             Your property will have ${finalNumBuildings === 5 ? '1 hotel' : `${finalNumBuildings} house${finalNumBuildings === 1 ? '' : 's'}`}
@@ -109,10 +96,11 @@ function buildConfirmationResponse(selectedProperty: Property, actualNumBuilding
 
             Do you want to confirm the operation?`
         )
-        .setColor(selectedProperty.color);
+        .setColor(selectedProperty.color)
+        .setThumbnail('attachment://build.png');
 
-    const responseBuilder = new DiscordResponse([bulidEmbed]);
-    responseBuilder.addButtons(...setUpBuildConfirmationButtons());
+    const responseBuilder = new DiscordResponse([bulidEmbed], [buildingIcon]);
+    responseBuilder.addButtons(...setUpConfirmationButtons());
     return responseBuilder;
 }
 
@@ -121,45 +109,6 @@ async function userOwnsAllColorInGame(color: ColorResolvable, gameId: number, us
     const sameColorPropertiesInGame = await PropertyGame.findAll({ where: { gameId: gameId, id: sameColorPropertiesIds } });
 
     return sameColorPropertiesInGame.every(({ ownerId }) => ownerId === userId);
-}
-
-function setUpBuildConfirmationButtons(): ButtonData[] {
-    return [
-        {
-            id: 'confirmBuild',
-            label: 'Yes',
-            style: ButtonStyle.Success
-        },
-        {
-            id: 'cancelBuild',
-            label: 'No',
-            style: ButtonStyle.Danger
-        }
-    ]
-}
-
-function handleButtonInteractions(responseBuilder: DiscordResponse, interaction: ChatInputCommandInteraction) {
-    return new Promise((resolve) => {
-        const collector = createButtonCollector(responseBuilder.response!, interaction);
-
-        collector?.on('collect', async b => {
-            try {
-                switch (b.customId) {
-                    case 'confirmBuild':
-                        return resolve(true);
-                    case 'cancelBuild': default:
-                        throw 'Turn Ended';
-                }
-            } catch (e: any) {
-                collector.stop();
-                return resolve(false);
-            }
-        });
-
-        collector?.on('end', _collected => {
-            return resolve(false);
-        });
-    });
 }
 
 async function buyBuildings(buyer: Player, propertyGame: PropertyGame, finalNumBuildings: 0 | 1 | 2 | 3 | 4 | 5, cost: number) {

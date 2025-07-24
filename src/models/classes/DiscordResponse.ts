@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, InteractionReplyOptions, InteractionResponse, Message, MessagePayload } from "discord.js";
+import { ActionRowBuilder, AttachmentBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, InteractionReplyOptions, InteractionResponse, Message, MessagePayload } from "discord.js";
 
 export interface ButtonData {
     id: string;
@@ -9,12 +9,14 @@ export interface ButtonData {
 
 export default class DiscordResponse {
     embeds: EmbedBuilder[];
+    files: AttachmentBuilder[];
     actionRow: ActionRowBuilder<ButtonBuilder>;
     response?: Message | InteractionResponse;
 
-    public constructor(embeds?: EmbedBuilder[]) {
+    public constructor(embeds?: EmbedBuilder[], files?: AttachmentBuilder[]) {
         this.embeds = embeds ?? [];
         this.actionRow = new ActionRowBuilder<ButtonBuilder>();
+        this.files = files ?? [];
     }
 
     public addButtons(...buttonData: ButtonData[]) {
@@ -30,6 +32,6 @@ export default class DiscordResponse {
     }
 
     public generateResponsePayload(): string | MessagePayload | InteractionReplyOptions {
-        return { embeds: this.embeds, components: [this.actionRow] };
+        return { embeds: this.embeds, components: [this.actionRow], files: this.files };
     }
 }
