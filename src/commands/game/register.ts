@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
-import Command from '../../models/interfaces/Command';
+import type Command from '../../models/interfaces/Command';
 import { User } from "../../db/tables/User";
 import { Player } from "../../db/tables/Player";
 import { buildErrorEmbed } from "../../utils/embeds/buildErrorEmbedResponse";
@@ -47,7 +47,7 @@ const command: Command = {
 
             interaction.reply(`User ${interaction.user.username} added successfully to the game.`);
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             interaction.reply('Something went wrong with adding a user to the game.');
             console.error(error);
         }

@@ -1,7 +1,7 @@
-import { ColorResolvable, SlashCommandBuilder, ChatInputCommandInteraction, AttachmentBuilder } from "discord.js";
-import Command from '../../models/interfaces/Command';
+import { type ColorResolvable, SlashCommandBuilder, ChatInputCommandInteraction, AttachmentBuilder } from "discord.js";
+import type Command from '../../models/interfaces/Command';
 import { getProperties } from "../../utils/actions/propertyActions";
-import Property from "../../models/interfaces/Property";
+import type Property from "../../models/interfaces/Property";
 import { getCurrentGameOrFail, handleCommandError } from "../../utils/validations";
 import { PropertyGame } from "../../db/tables/PropertyGame";
 import { buildTemplateEmbed } from "../../utils/embeds/buildTemplateEmbed";
@@ -11,6 +11,8 @@ import { getPropertyData, promptOperation } from "../../utils/ownedPropertyOpera
 import { Game } from "../../db/tables/Game";
 
 const properties = getProperties();
+
+type ValidBuildingNumber = 0 | 1 | 2 | 3 | 4 | 5;
 
 const command: Command = {
     data: new SlashCommandBuilder()
@@ -41,7 +43,7 @@ const command: Command = {
             const chosenNumBuildings = interaction.options.getInteger('num-buildings') ?? 1;
             const { actualNumBuildings, finalNumBuildings, totalCost } = calculateOperationDetails(propertyInGame, chosenNumBuildings, selectedProperty);
 
-            const responseBuilder = buildConfirmationResponse(selectedProperty, actualNumBuildings, finalNumBuildings, totalCost, interaction);
+            const responseBuilder = buildConfirmationResponse(selectedProperty, actualNumBuildings as ValidBuildingNumber, finalNumBuildings as ValidBuildingNumber, totalCost, interaction);
             const willBuild = await promptOperation(responseBuilder, interaction);
 
             if (!willBuild) {
@@ -51,7 +53,7 @@ const command: Command = {
 
             const player = propertyInGame.owner;
 
-            await buyBuildings(player!, propertyInGame, finalNumBuildings, totalCost);
+            await buyBuildings(player!, propertyInGame, finalNumBuildings as ValidBuildingNumber, totalCost);
 
             interaction.followUp(`
                 You have built \`${actualNumBuildings}\` houses in \`${selectedProperty.name}\` for \`${totalCost}\`. \
@@ -61,8 +63,8 @@ const command: Command = {
                 \nYou now have \`${propertyInGame.owner?.money}\`.`
             );
 
-        } catch (error: any) {
-            handleCommandError(interaction, error);
+        } catch (error: unknown) {
+            handleCommandError(interaction, error as Error);
         }
     },
 }
@@ -74,7 +76,7 @@ async function validateOperationConditions(selectedProperty: Property, game: Gam
     }
 }
 
-function calculateOperationDetails(propertyInGame: PropertyGame, chosenNumBuildings: any, selectedProperty: Property) {
+function calculateOperationDetails(propertyInGame: PropertyGame, chosenNumBuildings: number, selectedProperty: Property) {
     const alreadyBuilt = propertyInGame.numBuildings;
     // If user wants to build more than the max, build the max
     const actualNumBuildings = 5 - alreadyBuilt - chosenNumBuildings < 0 ? 5 - alreadyBuilt : chosenNumBuildings;
@@ -83,7 +85,7 @@ function calculateOperationDetails(propertyInGame: PropertyGame, chosenNumBuildi
     return { actualNumBuildings, finalNumBuildings, totalCost };
 }
 
-function buildConfirmationResponse(selectedProperty: Property, actualNumBuildings: 0 | 1 | 2 | 3 | 4 | 5, finalNumBuildings: 0 | 1 | 2 | 3 | 4 | 5, totalCost: number, interaction: ChatInputCommandInteraction) {
+function buildConfirmationResponse(selectedProperty: Property, actualNumBuildings: ValidBuildingNumber, finalNumBuildings: ValidBuildingNumber, totalCost: number, interaction: ChatInputCommandInteraction) {
     const buildingIcon = new AttachmentBuilder('./assets/build.png');
     
     const bulidEmbed = buildTemplateEmbed()
@@ -111,7 +113,7 @@ async function userOwnsAllColorInGame(color: ColorResolvable, gameId: number, us
     return sameColorPropertiesInGame.every(({ ownerId }) => ownerId === userId);
 }
 
-async function buyBuildings(buyer: Player, propertyGame: PropertyGame, finalNumBuildings: 0 | 1 | 2 | 3 | 4 | 5, cost: number) {
+async function buyBuildings(buyer: Player, propertyGame: PropertyGame, finalNumBuildings: ValidBuildingNumber, cost: number) {
     const userMoneyLeft = buyer.money - cost;
 
     if (userMoneyLeft < 0) throw new Error(`User does not have enough money:\nMoney Left: \`${buyer.money}\``);

@@ -4,7 +4,7 @@ import {
     MessagePayload,
     SlashCommandBuilder,
 } from "discord.js";
-import Command from "../../models/interfaces/Command";
+import type Command from "../../models/interfaces/Command";
 import { buildBoardEmbed } from "../../utils/embeds/buildBoardEmbed";
 import { drawBoard } from "../../utils/drawBoard";
 import { promptJailActionAndCheckIfPlays } from "../../utils/turns/jailTurn";
@@ -19,7 +19,7 @@ import DiscordResponse from "../../models/classes/DiscordResponse";
 import { getAndVerifyAll, handleCommandError } from "../../utils/validations";
 import { buildPropertyEmbed } from "../../utils/embeds/buildPropertyEmbed";
 import { getSquareById } from "../../utils/actions/squareActions";
-import Square from "../../models/interfaces/Square";
+import type Square from "../../models/interfaces/Square";
 import { propertyTurn } from "../../utils/turns/propertyTurn";
 import { createButtonCollector } from "../../utils/createButtonCollector";
 
@@ -47,7 +47,7 @@ const command: Command = {
             if (hasRolledDoublesThriceInARow(result1 === result2, player)) {
                 const doubleTroubleEmbed = buildBoardEmbed()
                     .setTitle('You rolled doubles 3 times in a row.')
-                    .setDescription('You are going to jail for the next \`3\` turns. You can get out of jail by paying `50$`, rolling doubles, or using a `Get out of Jail Card`')
+                    .setDescription('You are going to jail for the next `3` turns. You can get out of jail by paying `50$`, rolling doubles, or using a `Get out of Jail Card`')
                     .setColor('Orange');
 
                 await goToJail(player);
@@ -71,8 +71,8 @@ const command: Command = {
 
             await handleButtonInteractions(interaction, responseBuilder, square, player);
             await updateTurn(game, playerTurn);
-        } catch (error: any) {
-            handleCommandError(interaction, error);
+        } catch (error: unknown) {
+            handleCommandError(interaction, error as Error);
         }
     },
 };
@@ -114,15 +114,17 @@ async function handleSquareAction(player: Player, square: Square, game: Game): P
             break;
         case 'jail':
             await goToJail(player);
-            responseBuilder.embeds[0].setDescription('You are going to jail for the next \`3\` turns. You can get out of jail by paying `50$`, rolling doubles, or using a `Get out of Jail Card`');
+            responseBuilder.embeds[0].setDescription('You are going to jail for the next `3` turns. You can get out of jail by paying `50$`, rolling doubles, or using a `Get out of Jail Card`');
             break;
         case 'card':
-            const cardEmbed = await useCard(player);
-            if (cardEmbed) {
-                responseBuilder.embeds[0].setDescription('You take a `Chance Card` from the deck...');
-                responseBuilder.embeds.push(cardEmbed);
+            {
+                const cardEmbed = await useCard(player);
+                if (cardEmbed) {
+                    responseBuilder.embeds[0].setDescription('You take a `Chance Card` from the deck...');
+                    responseBuilder.embeds.push(cardEmbed);
+                }
+                break;
             }
-            break;
         case 'property':
             await propertyTurn(square, game, responseBuilder, player);
     }
@@ -133,7 +135,7 @@ async function handleSquareAction(player: Player, square: Square, game: Game): P
 async function handleButtonInteractions(interaction: ChatInputCommandInteraction, responseBuilder: DiscordResponse, square: Square, player: Player): Promise<void> {
     const collector = createButtonCollector(responseBuilder.response!, interaction);
 
-    collector?.on('end', _collected => {
+    collector?.on('end', () => {
         markTurnAsEnded();
     });
 
@@ -147,22 +149,24 @@ async function handleButtonInteractions(interaction: ChatInputCommandInteraction
 
                     await buyProperty(property, player);
 
-                    responseBuilder.actionRow.components[0].setDisabled(true);
+                    responseBuilder.actionRow.components[0]!.setDisabled(true);
                     await interaction.followUp(responseBuilder.generateResponsePayload() as MessagePayload);
 
                     interaction.followUp(`You bought the property \`${property.name}\` for \`${property.price}$\`.\nYou now have \`${player!.money}$\` left.`);
 
                     break;
                 case 'inspectProperty':
-                    if (!property) throw 'Inspect Property Error';
+                    {
+                        if (!property) throw 'Inspect Property Error';
 
-                    const embed = await buildPropertyEmbed(property);
+                        const embed = await buildPropertyEmbed(property);
 
-                    responseBuilder.actionRow.components[1].setDisabled(true);
-                    interaction.followUp({ embeds: [embed], content: 'You clicked on \`See Property Details`:' });
-                    await interaction.followUp(responseBuilder.generateResponsePayload() as MessagePayload);
+                        responseBuilder.actionRow.components[1]!.setDisabled(true);
+                        interaction.followUp({ embeds: [embed], content: 'You clicked on `See Property Details`:' });
+                        await interaction.followUp(responseBuilder.generateResponsePayload() as MessagePayload);
 
-                    break;
+                        break;
+                    }
                 case 'endTurn': default:
                     throw 'Turn Ended';
             }

@@ -1,11 +1,11 @@
 import { Game } from "../../db/tables/Game";
 import { PropertyGame } from "../../db/tables/PropertyGame";
 import Client from "../../models/classes/Client";
-import Property from "../../models/interfaces/Property";
+import type Property from "../../models/interfaces/Property";
 import { buildTemplateEmbed } from "./buildTemplateEmbed";
 
 export const buildPropertyEmbed = async (property: Property, game?: Game) => {
-    let owner = game ? (await PropertyGame.findOne({ where: { id: property.id, gameId: game.id } }))?.ownerId : null;
+    const owner = game ? (await PropertyGame.findOne({ where: { id: property.id, gameId: game.id } }))?.ownerId : null;
 
     return buildTemplateEmbed()
         .setColor(property.color)
@@ -17,10 +17,10 @@ export const buildPropertyEmbed = async (property: Property, game?: Game) => {
 }
 
 async function getPropertyDataString(property: Property, owner: string | null, game?: Game) {
-    let data: any = {
+    const data: { "Price": string, "Mortgage": string, "Cost per Building": string, "Owned By"?: string } = {
         "Price": property.price.toLocaleString(),
         "Mortgage": property.mortgage.toLocaleString(),
-        "Cost per Bulding": property.buildingCost.toLocaleString(),
+        "Cost per Building": property.buildingCost.toLocaleString(),
     }
 
     // If there is a game running, add these game-related entries

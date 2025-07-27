@@ -1,7 +1,7 @@
 import { Game } from "../db/tables/Game";
 import { Player } from "../db/tables/Player";
 
-export async function getGameFromGuildWithStatus(guild_id: string, status: any) {
+export async function getGameFromGuildWithStatus(guild_id: string, status: string) {
     try {
         return await Game.findOne({
             where: {
@@ -12,8 +12,8 @@ export async function getGameFromGuildWithStatus(guild_id: string, status: any) 
                 model: Player
             }
         });
-    } catch (err: any) {
-        console.error(err.message);
+    } catch (err: unknown) {
+        console.error((err as Error).message);
         return null;
     }
 }

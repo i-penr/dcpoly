@@ -1,18 +1,19 @@
-import { ButtonStyle, ChatInputCommandInteraction } from "discord.js";
+import { ButtonStyle, ChatInputCommandInteraction, CommandInteractionOptionResolver } from "discord.js";
 import { Game } from "../db/tables/Game";
 import { PropertyGame } from "../db/tables/PropertyGame";
 import { getPropertyFromId } from "./actions/propertyActions";
-import DiscordResponse, { ButtonData } from "../models/classes/DiscordResponse";
+import DiscordResponse, { type ButtonData } from "../models/classes/DiscordResponse";
 import { createButtonCollector } from "./createButtonCollector";
 import { Player } from "../db/tables/Player";
 
 export async function getPropertyData(game: Game, interaction: ChatInputCommandInteraction) {
-    const selectedPropertyId = await (interaction.options as any).getInteger('property-name');
+    const selectedPropertyId = await (interaction.options as CommandInteractionOptionResolver).getInteger('property-name');
+    if (!selectedPropertyId) throw new Error('ERROR: No option selected');
     const selectedProperty = getPropertyFromId(selectedPropertyId);
     const propertyInGame = await PropertyGame.findOne({ where: { gameId: game.id, ownerId: interaction.user.id, id: selectedPropertyId }, include: { model: Player, as: 'owner' } });
 
     if (!propertyInGame) {
-        throw new Error(`Sorry! You don\'t own property \`${selectedProperty.name}\` in the current game (game #${game.id})`);
+        throw new Error(`Sorry! You don't own property \`${selectedProperty.name}\` in the current game (game #${game.id})`);
     }
 
     return { propertyInGame, selectedProperty };
@@ -46,7 +47,7 @@ function handleButtonInteractions(responseBuilder: DiscordResponse, interaction:
     return new Promise((resolve) => {
         const collector = createButtonCollector(responseBuilder.response!, interaction);
 
-        collector?.on('collect', async (b: { customId: any; }) => {
+        collector?.on('collect', async (b: { customId: string; }) => {
             try {
                 switch (b.customId) {
                     case 'confirmBuild':
@@ -54,13 +55,13 @@ function handleButtonInteractions(responseBuilder: DiscordResponse, interaction:
                     case 'cancelBuild': default:
                         throw 'Turn Ended';
                 }
-            } catch (e: any) {
+            } catch {
                 collector.stop();
                 return resolve(false);
             }
         });
 
-        collector?.on('end', (_collected: any) => {
+        collector?.on('end', () => {
             return resolve(false);
         });
     });

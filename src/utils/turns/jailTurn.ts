@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, AttachmentBuilder, EmbedBuilder, ButtonStyle, ActionRowBuilder, ButtonBuilder } from "discord.js";
+import { ChatInputCommandInteraction, AttachmentBuilder, ButtonStyle, ActionRowBuilder, ButtonBuilder } from "discord.js";
 import { Player } from "../../db/tables/Player";
 import DiscordResponse from "../../models/classes/DiscordResponse";
 import { createButtonCollector } from "../createButtonCollector";
@@ -45,7 +45,7 @@ export async function promptJailActionAndCheckIfPlays(player: Player, interactio
 
 async function waitForJailResponse(responseBuilder: DiscordResponse, player: Player, result1: number, result2: number, interaction: ChatInputCommandInteraction) {
 
-    let description: string = 'You are now out of jail';
+    let description = 'You are now out of jail';
     let continuesPlaying = true;
 
     let title = await handleButtonInteractions(responseBuilder, interaction, player);
@@ -53,7 +53,7 @@ async function waitForJailResponse(responseBuilder: DiscordResponse, player: Pla
     responseBuilder.response?.edit({ components: [] });
 
     if (!title) {
-        title = 'You chose: \`Roll Dices\`';
+        title = 'You chose: `Roll Dices`';
         description = `You rolled a \`${result1}\` and a \`${result2}\``;
 
         if (result1 === result2) {
@@ -64,12 +64,12 @@ async function waitForJailResponse(responseBuilder: DiscordResponse, player: Pla
             continuesPlaying = false;
 
             await player.update({ jailStatus: newJailStatus });
-            description += `\nYou didn\'t roll doubles. You have \`${newJailStatus + 1}\` turns left in jail.`;
+            description += `\nYou didn't roll doubles. You have \`${newJailStatus + 1}\` turns left in jail.`;
         }
     }
 
-    responseBuilder.embeds[0].setTitle(title);
-    responseBuilder.embeds[0].setDescription(description);
+    responseBuilder.embeds[0]!.setTitle(title);
+    responseBuilder.embeds[0]!.setDescription(description);
     responseBuilder.actionRow = new ActionRowBuilder<ButtonBuilder>();
 
     await interaction.followUp(responseBuilder.generateResponsePayload());
@@ -81,7 +81,7 @@ function handleButtonInteractions(responseBuilder: DiscordResponse, interaction:
     return new Promise((resolve) => {
         const collector = createButtonCollector(responseBuilder.response!, interaction);
 
-        collector?.on('collect', async (b: { customId: any; }) => {
+        collector?.on('collect', async (b: { customId: string; }) => {
             switch (b.customId) {
                 case 'payUp':
                     handlePayUpOption(player)
@@ -94,7 +94,7 @@ function handleButtonInteractions(responseBuilder: DiscordResponse, interaction:
             }
         });
 
-        collector?.on('end', (_collected: any) => {
+        collector?.on('end', () => {
             return resolve('')
         });
     });

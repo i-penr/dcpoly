@@ -1,7 +1,7 @@
 import { ButtonBuilder, ButtonStyle } from "discord.js";
 import fs from 'node:fs';
 import path from "node:path";
-import Property from "../../models/interfaces/Property";
+import type Property from "../../models/interfaces/Property";
 import { Player } from "../../db/tables/Player";
 import { PropertyGame } from "../../db/tables/PropertyGame";
 
@@ -12,7 +12,7 @@ export function getProperties(): Property[] {
 export function getPropertyFromId(selectedId: number): Property {
     const properties = getProperties();
 
-    return properties.filter(({ id }: { id: number }) => id === selectedId)[0];
+    return properties.filter(({ id }: { id: number }) => id === selectedId)[0]!;
 }
 
 export function createPropertyPromptActionRow(playerHasMoney: boolean) {

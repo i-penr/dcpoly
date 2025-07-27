@@ -1,9 +1,9 @@
 import Client from "../../models/classes/Client";
 import { Player } from "../../db/tables/Player";
 import { PropertyGame } from "../../db/tables/PropertyGame";
-import Property from "../../models/interfaces/Property";
+import type Property from "../../models/interfaces/Property";
 import { getPropertyFromId, createPropertyPromptActionRow } from "../actions/propertyActions";
-import Square from "../../models/interfaces/Square";
+import type Square from "../../models/interfaces/Square";
 import { Game } from "../../db/tables/Game";
 import DiscordResponse from "../../models/classes/DiscordResponse";
 import { Turn } from "../../db/tables/Turn";
@@ -12,7 +12,7 @@ export async function propertyTurn(square: Square, game: Game, responseBuilder: 
     const property: Property = getPropertyFromId(square.id);
     const propertyGame = await PropertyGame.findOne({ where: { gameId: game.id, id: property.id }, include: { model: Player, as: 'owner' }, logging: console.log });
 
-    if (!property || !propertyGame) throw new Error('Property does not exist (internal error).');
+    if (!property || !propertyGame || !responseBuilder.embeds[0]) throw new Error('Property does not exist (internal error).');
 
     const owner = propertyGame.owner;
 
@@ -25,7 +25,7 @@ export async function propertyTurn(square: Square, game: Game, responseBuilder: 
         return;
     }
 
-    const rent = property.rentProg[propertyGame.numBuildings];
+    const rent = property.rentProg[propertyGame.numBuildings]!;
 
     if (player.userId === owner.userId) {
         responseBuilder.embeds[0].setDescription(`This property is owned by you. Enjoy your stay!`);
@@ -41,7 +41,7 @@ export async function propertyTurn(square: Square, game: Game, responseBuilder: 
         } else if (player.net_worth - rent >= 0) {
             responseBuilder.embeds[0].setDescription(`
                 You need to pay ${ownerName} \`${rent}\`,
-                but you don\'t have enough money. Money left: \`${player.money}\`.
+                but you don't have enough money. Money left: \`${player.money}\`.
 
                 You need \`${player.money - rent}\` to pay your debts. Mortgage owned properties,
                 or sell any built buildings, if any. Or else go bankrupt and lose the game.
@@ -49,7 +49,7 @@ export async function propertyTurn(square: Square, game: Game, responseBuilder: 
         } else {
             responseBuilder.embeds[0].setDescription(`
                 You need to pay ${ownerName} \`${rent}\`,
-                but you don\'t have enough money. Money left: \`${player.money}\`.
+                but you don't have enough money. Money left: \`${player.money}\`.
 
                 Your owned properties and buildings aren't enough to cover your debt, so you are
                 about to be declared **bankrupt**.

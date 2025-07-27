@@ -2,7 +2,7 @@ import { Collection } from "discord.js";
 import fs from 'fs';
 import path from 'path';
 import Client from "./models/classes/Client";
-import Command from "./models/interfaces/Command";
+import type Command from "./models/interfaces/Command";
 
 const client = Client.getInstance();
 
@@ -11,15 +11,15 @@ const eventsPath = path.join(__dirname, 'events');
 const eventFiles = fs.readdirSync(eventsPath);
 
 for (const file of eventFiles) {
-	const filePath = path.join(eventsPath, file);
-	const { event } = require(filePath);
-
-	if (event.once) {
-		client.once(event.name, (...args) => event.execute(...args));
-	} else {
-		client.on(event.name, (...args) => event.execute(...args));
-	}
-}
+    const filePath = path.join(eventsPath, file);
+    import(filePath).then(({ event }) => {
+      if (event.once) {
+        client.once(event.name, (...args) => event.execute(...args));
+      } else {
+        client.on(event.name, (...args) => event.execute(...args));
+      }
+    }).catch((err) => console.error(`Error loading event file: ${filePath}`, err));
+  }
 
 // Command handler
 client.commands = new Collection<string, Command>();
@@ -33,14 +33,18 @@ for (const folder of commandFolders) {
 
     for (const file of commandFiles) {
         const filePath = path.join(commandsPath, file);
-        const { command } = require(filePath);
-
-        if ('data' in command && 'execute' in command) {
-            client.commands.set(command.data.name, command);
-        } else {
-            console.log(command)
-            console.log(`[WARNING] The command '${file}' is not well formed.`);
-        }
+        
+        // Dynamically import the file
+        import(filePath).then(({ command }) => {
+            if ('data' in command && 'execute' in command) {
+                client.commands.set(command.data.name, command);
+            } else {
+                console.log(command);
+                console.log(`[WARNING] The command '${file}' is not well formed.`);
+            }
+        }).catch((err) => {
+            console.error(`[ERROR] Failed to load command file: ${filePath}`, err);
+        });
     }
 }
 

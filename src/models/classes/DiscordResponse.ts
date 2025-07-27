@@ -1,4 +1,4 @@
-import { ActionRowBuilder, AttachmentBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, InteractionReplyOptions, InteractionResponse, Message, MessagePayload } from "discord.js";
+import { ActionRowBuilder, AttachmentBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, type InteractionReplyOptions, InteractionResponse, Message, MessagePayload } from "discord.js";
 
 export interface ButtonData {
     id: string;

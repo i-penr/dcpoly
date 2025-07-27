@@ -4,7 +4,7 @@ import { Game } from "../../db/tables/Game";
 import { goToJail } from "../actions/goToJail";
 import fs from 'node:fs';
 import path from "node:path";
-import Card from "../../models/interfaces/Card";
+import type Card from "../../models/interfaces/Card";
 import Client from "../../models/classes/Client";
 
 export async function useCard(player: Player) {
@@ -12,7 +12,7 @@ export async function useCard(player: Player) {
         const cards = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'data', 'cards.json'), 'utf-8'));
         const randomCard: Card = cards[Math.floor(Math.random() * cards.length)]!;
         const money = randomCard.money ?? 0;
-        let cardEmbed = buildTemplateEmbed()
+        const cardEmbed = buildTemplateEmbed()
             .setTitle(randomCard.title)
             .setDescription(randomCard.description)
             .setAuthor({ name: 'Chance card', iconURL: Client.getInstance().user!.avatarURL()! })
@@ -62,7 +62,7 @@ export async function useCard(player: Player) {
         }
 
         return cardEmbed;
-    } catch (err: any) {
+    } catch (err) {
         console.error('Error using card:', err);
     }
 }

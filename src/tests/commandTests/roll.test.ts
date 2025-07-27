@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { beforeEach, describe, expect, it } from "bun:test";
 import { mockDb } from "../mockDb";
 import { mockInteractionAndSpyReply } from "../mockDiscord";
@@ -5,10 +6,10 @@ import { Game } from "../../db/tables/Game";
 import { Player } from "../../db/tables/Player";
 
 describe('/roll command tests', async () => {
-    let spy: any, sequelize: any, game: Game, player: Player;
+    let spy: any, game: Game, player: Player;
 
     beforeEach(async () => {
-        sequelize = await mockDb();
+        await mockDb();
         game = (await Game.findByPk(process.env.GAME_ID))!;
         player = (await Player.findOne({ where: { userId: process.env.AUTHOR_ID, gameId: process.env.GAME_ID } }))!;
     });

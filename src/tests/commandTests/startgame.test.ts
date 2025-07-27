@@ -1,11 +1,13 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { beforeEach, describe, expect, it } from "bun:test";
 import { mockDb } from "../mockDb";
 import { mockInteractionAndSpyReply } from "../mockDiscord";
 import { Player } from "../../db/tables/Player";
 import { Game } from "../../db/tables/Game";
+import type { Sequelize } from "sequelize";
 
 describe('/startgame command tests', () => {
-    let spy: any, sequelize: any;
+    let spy: any, sequelize: Sequelize;
 
     beforeEach(async () => {
         sequelize = await mockDb();

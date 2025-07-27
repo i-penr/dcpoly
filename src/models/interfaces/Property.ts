@@ -1,4 +1,4 @@
-import { ColorResolvable } from "discord.js";
+import type { ColorResolvable } from "discord.js";
 
 export default interface Property {
     id: number;
@@ -6,6 +6,6 @@ export default interface Property {
     price: number;
     mortgage: number;
     color: ColorResolvable;
-    rentProg: Array<number>;
+    rentProg: number[];
     buildingCost: number;
 }

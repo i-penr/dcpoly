@@ -15,7 +15,7 @@ export async function drawBoard(players: Player[]) {
     const background = await Canvas.loadImage(path.join(__dirname, '..', '..', 'assets', 'board.png'));
     context.drawImage(background, 0, 0, canvas.width, canvas.height);
 
-    for (let player of players) {
+    for (const player of players) {
         const dcUser = await Client.getInstance().users.fetch(player.get('userId'));
         const avatarUrl = dcUser.displayAvatarURL({ extension: 'png' });
 

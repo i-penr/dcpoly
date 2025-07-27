@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder, User } from 'discord.js';
-import Command from '../../models/interfaces/Command';
+import type Command from '../../models/interfaces/Command';
 import { buildErrorEmbed } from '../../utils/embeds/buildErrorEmbedResponse';
 import { Player } from '../../db/tables/Player';
 import { buildTemplateEmbed } from '../../utils/embeds/buildTemplateEmbed';
@@ -29,8 +29,8 @@ const command: Command = {
             const playerEmbed = buildInfoEmbed(chosenPlayer, interaction, players);
 
             interaction.reply({ embeds: [playerEmbed] });
-        } catch (error: any) {
-            handleCommandError(interaction, error);
+        } catch (error: unknown) {
+            handleCommandError(interaction, error as Error);
         }
     },
 }
@@ -83,9 +83,9 @@ function getPlayerRanking(playerList: Player[], player: Player): string {
 }
 
 function ordinal(n: number) {
-    var s = ["th", "st", "nd", "rd"];
-    var v = n % 100;
-    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+    const s = ["th", "st", "nd", "rd"];
+    const v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0])!;
 }
 
 export { command };

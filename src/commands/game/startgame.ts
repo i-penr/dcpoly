@@ -1,10 +1,11 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder} from "discord.js";
-import Command from '../../models/interfaces/Command';
+import type Command from '../../models/interfaces/Command';
 import { Turn } from "../../db/tables/Turn";
 import { getGameFromGuildWithStatus } from "../../utils/database";
 import { getProperties } from "../../utils/actions/propertyActions";
 import { buildErrorEmbed } from "../../utils/embeds/buildErrorEmbedResponse";
 import { PropertyGame } from "../../db/tables/PropertyGame";
+import { handleCommandError } from "../../utils/validations";
 
 const command: Command = {
     data: new SlashCommandBuilder()
@@ -27,7 +28,7 @@ const command: Command = {
                 return;
             }
 
-            for (let player of players) {
+            for (const player of players) {
                 Turn.create({
                     playerOrder: players.indexOf(player),
                     gameId: gameId,
@@ -44,9 +45,8 @@ const command: Command = {
             game.update({ status: 'active', start_date: new Date(), currentTurn: 0 });
 
             interaction.reply(`Game #${gameId} has now started!`);
-        } catch (error: any) {
-            console.log(error);
-			interaction.reply('Something went wrong when creating a new game.');
+        } catch (error: unknown) {
+            handleCommandError(interaction, error as Error)
         }
     },
 }

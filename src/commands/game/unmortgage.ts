@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder, AttachmentBuilder } from "discord.js";
-import Command from '../../models/interfaces/Command';
+import type Command from '../../models/interfaces/Command';
 import { getProperties } from "../../utils/actions/propertyActions";
-import Property from "../../models/interfaces/Property";
+import type Property from "../../models/interfaces/Property";
 import { getCurrentGameOrFail, handleCommandError } from "../../utils/validations";
 import { PropertyGame } from "../../db/tables/PropertyGame";
 import { getPropertyData, promptOperation } from "../../utils/ownedPropertyOperations";
@@ -52,8 +52,8 @@ const command: Command = {
                 \nYou now have \`${propertyInGame.owner?.money}\`.`
             );
 
-        } catch (error: any) {
-            handleCommandError(interaction, error);
+        } catch (error: unknown) {
+            handleCommandError(interaction, error as Error);
         }
     },
 }
