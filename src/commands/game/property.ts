@@ -25,6 +25,7 @@ const command: Command = {
         }),
     async execute(interaction: ChatInputCommandInteraction) {
         try {
+            console.log(interaction.options.getInteger('property-name'))
             const selectedProperty = getPropertyFromId((interaction.options as CommandInteractionOptionResolver).getInteger('property-name')!);
             const game = await getGameFromGuildWithStatus(interaction.guildId!, 'active');
             const propertyEmbed = await buildPropertyEmbed(selectedProperty, game ?? undefined);
