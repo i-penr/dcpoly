@@ -1,8 +1,8 @@
-import { Collection } from "discord.js";
+import { Collection } from 'discord.js';
 import fs from 'fs';
 import path from 'path';
-import Client from "./models/classes/Client";
-import type Command from "./models/interfaces/Command";
+import Client from './models/classes/Client';
+import type Command from './models/interfaces/Command';
 
 const client = Client.getInstance();
 
@@ -11,15 +11,17 @@ const eventsPath = path.join(__dirname, 'events');
 const eventFiles = fs.readdirSync(eventsPath);
 
 for (const file of eventFiles) {
-    const filePath = path.join(eventsPath, file);
-    import(filePath).then(({ event }) => {
-      if (event.once) {
-        client.once(event.name, (...args) => event.execute(...args));
-      } else {
-        client.on(event.name, (...args) => event.execute(...args));
-      }
-    }).catch((err) => console.error(`Error loading event file: ${filePath}`, err));
-  }
+	const filePath = path.join(eventsPath, file);
+	import(filePath)
+		.then(({ event }) => {
+			if (event.once) {
+				client.once(event.name, (...args) => event.execute(...args));
+			} else {
+				client.on(event.name, (...args) => event.execute(...args));
+			}
+		})
+		.catch((err) => console.error(`Error loading event file: ${filePath}`, err));
+}
 
 // Command handler
 client.commands = new Collection<string, Command>();
@@ -28,24 +30,26 @@ const foldersPath = path.join(__dirname, 'commands');
 const commandFolders = fs.readdirSync(foldersPath);
 
 for (const folder of commandFolders) {
-    const commandsPath = path.join(foldersPath, folder);
-    const commandFiles = fs.readdirSync(commandsPath);
+	const commandsPath = path.join(foldersPath, folder);
+	const commandFiles = fs.readdirSync(commandsPath);
 
-    for (const file of commandFiles) {
-        const filePath = path.join(commandsPath, file);
-        
-        // Dynamically import the file
-        import(filePath).then(({ command }) => {
-            if ('data' in command && 'execute' in command) {
-                client.commands.set(command.data.name, command);
-            } else {
-                console.log(command);
-                console.log(`[WARNING] The command '${file}' is not well formed.`);
-            }
-        }).catch((err) => {
-            console.error(`[ERROR] Failed to load command file: ${filePath}`, err);
-        });
-    }
+	for (const file of commandFiles) {
+		const filePath = path.join(commandsPath, file);
+
+		// Dynamically import the file
+		import(filePath)
+			.then(({ command }) => {
+				if ('data' in command && 'execute' in command) {
+					client.commands.set(command.data.name, command);
+				} else {
+					console.log(command);
+					console.log(`[WARNING] The command '${file}' is not well formed.`);
+				}
+			})
+			.catch((err) => {
+				console.error(`[ERROR] Failed to load command file: ${filePath}`, err);
+			});
+	}
 }
 
 client.login(process.env.TOKEN);

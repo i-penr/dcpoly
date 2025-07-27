@@ -1,195 +1,42 @@
 [
-    {
-        "id": 0,
-        "name": "Start",
-        "type": "start",
-        "cost": -200
-    },
-    {
-        "id": 1,
-        "type": "property"
-    },
-    {
-        "id": 2,
-        "name": "Community 1",
-        "type": "card"
-    },
-    {
-        "id": 3,
-        "type": "property"
-    },
-    {
-        "id": 4,
-        "name": "Big Tax",
-        "type": "tax",
-        "cost": 200
-    },
-    {
-        "id": 5,
-        "name": "Station 1",
-        "type": "station",
-        "price": 200,
-        "mortgage": 100
-    },
-    {
-        "id": 6,
-        "type": "property"
-    },
-    {
-        "id": 7,
-        "name": "Luck 1",
-        "type": "card"
-    },
-    {
-        "id": 8,
-        "type": "property"
-    },
-    {
-        "id": 9,
-        "type": "property"
-    },
-    {
-        "id": 10,
-        "name": "Jail (Visits)",
-        "type": "visit_jail"
-    },
-    {
-        "id": 11,
-        "type": "property"
-    },
-    {
-        "id": 12,
-        "name": "Special 1",
-        "type": "special",
-        "price": 150,
-        "mortgage": 75
-    },
-    {
-        "id": 13,
-        "type": "property"
-    },
-    {
-        "id": 14,
-        "type": "property"
-    },
-    {
-        "id": 15,
-        "name": "Station 2",
-        "type": "station",
-        "price": 200,
-        "mortgage": 100
-    },
-    {
-        "id": 16,
-        "type": "property"
-    },
-    {
-        "id": 17,
-        "name": "Community 2",
-        "type": "card"
-    },
-    {
-        "id": 18,
-        "type": "property"
-    },
-    {
-        "id": 19,
-        "type": "property"
-    },
-    {
-        "id": 20,
-        "name": "Free Space",
-        "type": "free_space"
-    },
-    {
-        "id": 21,
-        "type": "property"
-    },
-    {
-        "id": 22,
-        "name": "Luck 2",
-        "type": "card"
-    },
-    {
-        "id": 23,
-        "type": "property"
-    },
-    {
-        "id": 24,
-        "type": "property"
-    },
-    {
-        "id": 25,
-        "name": "Station 3",
-        "type": "station",
-        "price": 200,
-        "mortgage": 100
-    },
-    {
-        "id": 26,
-        "type": "property"
-    },
-    {
-        "id": 27,
-        "type": "property"
-    },
-    {
-        "id": 28,
-        "name": "Special 2",
-        "type": "special",
-        "price": 150,
-        "mortgage": 175
-    },
-    {
-        "id": 29,
-        "type": "property"
-    },
-    {
-        "id": 30,
-        "name": "Jailed",
-        "type": "jail"
-    },
-    {
-        "id": 31,
-        "type": "property"
-    },
-    {
-        "id": 32,
-        "type": "property"
-    },
-    {
-        "id": 33,
-        "name": "Community 3",
-        "type": "card"
-    },
-    {
-        "id": 34,
-        "type": "property"
-    },
-    {
-        "id": 35,
-        "name": "Station 4",
-        "type": "station",
-        "price": 200,
-        "mortgage": 100
-    },
-    {
-        "id": 36,
-        "name": "Luck 3",
-        "type": "card"
-    },
-    {
-        "id": 37,
-        "type": "property"
-    },
-    {
-        "id": 38,
-        "name": "Small Tax",
-        "type": "tax",
-        "cost": 100
-    },
-    {
-        "id": 39,
-        "type": "property"
-    }
+	{ "id": 0, "name": "Start", "type": "start", "cost": -200 },
+	{ "id": 1, "type": "property" },
+	{ "id": 2, "name": "Community 1", "type": "card" },
+	{ "id": 3, "type": "property" },
+	{ "id": 4, "name": "Big Tax", "type": "tax", "cost": 200 },
+	{ "id": 5, "name": "Station 1", "type": "station", "price": 200, "mortgage": 100 },
+	{ "id": 6, "type": "property" },
+	{ "id": 7, "name": "Luck 1", "type": "card" },
+	{ "id": 8, "type": "property" },
+	{ "id": 9, "type": "property" },
+	{ "id": 10, "name": "Jail (Visits)", "type": "visit_jail" },
+	{ "id": 11, "type": "property" },
+	{ "id": 12, "name": "Special 1", "type": "special", "price": 150, "mortgage": 75 },
+	{ "id": 13, "type": "property" },
+	{ "id": 14, "type": "property" },
+	{ "id": 15, "name": "Station 2", "type": "station", "price": 200, "mortgage": 100 },
+	{ "id": 16, "type": "property" },
+	{ "id": 17, "name": "Community 2", "type": "card" },
+	{ "id": 18, "type": "property" },
+	{ "id": 19, "type": "property" },
+	{ "id": 20, "name": "Free Space", "type": "free_space" },
+	{ "id": 21, "type": "property" },
+	{ "id": 22, "name": "Luck 2", "type": "card" },
+	{ "id": 23, "type": "property" },
+	{ "id": 24, "type": "property" },
+	{ "id": 25, "name": "Station 3", "type": "station", "price": 200, "mortgage": 100 },
+	{ "id": 26, "type": "property" },
+	{ "id": 27, "type": "property" },
+	{ "id": 28, "name": "Special 2", "type": "special", "price": 150, "mortgage": 175 },
+	{ "id": 29, "type": "property" },
+	{ "id": 30, "name": "Jailed", "type": "jail" },
+	{ "id": 31, "type": "property" },
+	{ "id": 32, "type": "property" },
+	{ "id": 33, "name": "Community 3", "type": "card" },
+	{ "id": 34, "type": "property" },
+	{ "id": 35, "name": "Station 4", "type": "station", "price": 200, "mortgage": 100 },
+	{ "id": 36, "name": "Luck 3", "type": "card" },
+	{ "id": 37, "type": "property" },
+	{ "id": 38, "name": "Small Tax", "type": "tax", "cost": 100 },
+	{ "id": 39, "type": "property" }
 ]

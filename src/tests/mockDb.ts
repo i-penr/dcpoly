@@ -1,23 +1,23 @@
-import { sequelize as baseSequelize } from "../db/db";
-import { setupDatabaseAssociations } from "../db/db_creation/db_creation";
-import { setupFakeTestGame } from "./setupFakeTestGame";
+import { sequelize as baseSequelize } from '../db/db';
+import { setupDatabaseAssociations } from '../db/db_creation/db_creation';
+import { setupFakeTestGame } from './setupFakeTestGame';
 
 let associationsSetUp = false;
 
 export async function mockDb() {
-    const sequelize = Object.assign(baseSequelize);
-    //sequelize.options.logging = console.log;
-    sequelize.options.storage = ':memory:';
+	const sequelize = Object.assign(baseSequelize);
+	//sequelize.options.logging = console.log;
+	sequelize.options.storage = ':memory:';
 
-    await sequelize.drop();
-    await sequelize.sync({ force: true });
+	await sequelize.drop();
+	await sequelize.sync({ force: true });
 
-    if (!associationsSetUp) {
-        setupDatabaseAssociations();
-        associationsSetUp = true;
-    }
+	if (!associationsSetUp) {
+		setupDatabaseAssociations();
+		associationsSetUp = true;
+	}
 
-    await setupFakeTestGame();
+	await setupFakeTestGame();
 
-    return sequelize;
+	return sequelize;
 }

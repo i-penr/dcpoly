@@ -1,9 +1,8 @@
-import { EmbedBuilder } from "discord.js";
-import { buildTemplateEmbed } from "./buildTemplateEmbed";
+import { EmbedBuilder } from 'discord.js';
+import { buildTemplateEmbed } from './buildTemplateEmbed';
 
 export const buildBoardEmbed = (): EmbedBuilder => {
-    const boardEmbed = buildTemplateEmbed()
-        .setImage('attachment://board.png')
-        
-    return boardEmbed;
-}
+	const boardEmbed = buildTemplateEmbed().setImage('attachment://board.png');
+
+	return boardEmbed;
+};

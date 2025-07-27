@@ -1,2 +1,3 @@
-# Dcpoly - A Discord bot   
+# Dcpoly - A Discord bot
+
 text
