@@ -15,11 +15,11 @@ const properties = getProperties();
 
 const command: Command = {
     data: new SlashCommandBuilder()
-        .setName('mortgage')
-        .setDescription('Mortgage one of your properties (only if its color has no buildings)')
+        .setName('unmortgage')
+        .setDescription('Unmortgage one of your properties (only if its color has no buildings)')
         .addIntegerOption(option => {
             option.setName('property-name')
-                .setDescription('The property (owned by you) that you want to mortgage.')
+                .setDescription('The mortgaged property (owned by you) that you want to unmortgage.')
                 .setRequired(true);
 
             properties.forEach((property: Property) => {
@@ -33,9 +33,9 @@ const command: Command = {
             const game = await getCurrentGameOrFail(interaction.guildId!);
             const { propertyInGame, selectedProperty } = await getPropertyData(game, interaction);
 
-            await validateOperationConditions(propertyInGame, selectedProperty, game);
+            await validateOperationConditions(propertyInGame, selectedProperty);
 
-            const responseBuilder = buildConfirmationResponse(selectedProperty, interaction);
+            const responseBuilder = buildConfirmationResponse(selectedProperty, propertyInGame.owner!, interaction);
             const willBuild = await promptOperation(responseBuilder, interaction);
 
             if (!willBuild) {
@@ -43,12 +43,12 @@ const command: Command = {
                 return;
             }
 
-            mortgageProperty(propertyInGame, propertyInGame.owner!, selectedProperty.mortgage);
+            unmortgageProperty(propertyInGame, propertyInGame.owner!, selectedProperty.mortgage);
 
             interaction.followUp(`
-                You have **mortgaged** \`${selectedProperty.name}\`. You've earned \`${selectedProperty.mortgage}\` \
+                You have **unmortgaged** \`${selectedProperty.name}\`. You've paid \`${selectedProperty.mortgage * 1.1}\` \
                 \n \
-                \nNo rent will be collected from this property.\
+                \nProperty \`${selectedProperty.name}\` is collecting rent again.\
                 \n \
                 \nTo unmortgage this property, run \`/unmortgage\`. The unmortgage cost will be \`${selectedProperty.mortgage * 1.1}\`
                 \nYou now have \`${propertyInGame.owner?.money}\`.`
@@ -60,15 +60,16 @@ const command: Command = {
     },
 }
 
-function buildConfirmationResponse(selectedProperty: Property, interaction: ChatInputCommandInteraction) {
+function buildConfirmationResponse(selectedProperty: Property, player: Player, interaction: ChatInputCommandInteraction) {
     const mortgageIcon = new AttachmentBuilder('./assets/mortgage.png');
     const mortgageEmbed = buildTemplateEmbed()
-        .setTitle(`Mortgage operation summary in \`${selectedProperty.name}\``)
+        .setTitle(`Unmortgage operation summary in \`${selectedProperty.name}\``)
         .setDescription(`
-                 You are going to **mortgage** property \`${selectedProperty.name}\`. It will give you \`${selectedProperty.mortgage}\` \
-                 \n\nYour property will be flagged as \`mortgaged\`, so **no rent will be collected from it** \
-                 \n\nTo unmortgage this property, you will need to pay \`${selectedProperty.mortgage * 1.1}\` \
+                 You are going to **unmortgage** property \`${selectedProperty.name}\`. It will cost you \`${selectedProperty.mortgage * 1.1}\` \
+                 \n\nYour property will no longer be mortgaged, so **it will resume collecting rent**. \
+                 \n\nMortgaging this property again will give you \`${selectedProperty.mortgage}\` \
                  \n \
+                 \n\nCurrent Money: \`${player.money}\`
                  \nDo you want to confirm the operation?`
         )
         .setColor(selectedProperty.color)
@@ -79,26 +80,23 @@ function buildConfirmationResponse(selectedProperty: Property, interaction: Chat
     return responseBuilder;
 }
 
-async function validateOperationConditions(propertyInGame: PropertyGame, selectedProperty: Property, game: Game) {
-    if (propertyInGame.mortgaged) {
-        throw new Error(`Property ${selectedProperty.name} is already mortgaged. Run \`/unmortgage\` to unmortgage it for \`${selectedProperty.mortgage * 1.1}\``);
+async function validateOperationConditions(propertyInGame: PropertyGame, selectedProperty: Property) {
+    if (!propertyInGame.mortgaged) {
+        throw new Error(`Property ${selectedProperty.name} is not mortgaged. Run \`/mortgage\` to mortgage it for \`${selectedProperty.mortgage}\``);
     }
 
-    if (await buildingsExistInColor(selectedProperty.color, game.id)) {
-        throw new Error(`You cannot mortgage the property \`${selectedProperty.name}\` because there are buildings present in color \`${selectedProperty.color}\``);
+    if (propertyInGame.owner!.money < selectedProperty.mortgage * 1.1) {
+        throw new Error(`
+            You don't have enough money (\`${propertyInGame.owner!.money}\`) to unmortgage property \`${selectedProperty.name}\`\
+            (unmortgage cost: \`${selectedProperty.mortgage * 1.1}\`).\
+            \n\n \
+            Try selling buildings or mortgaging other properties to earn money.`);
     }
 }
 
-async function buildingsExistInColor(color: ColorResolvable, gameId: number) {
-    const propertiesInColor = getProperties().filter((p) => p.color = color).map((p) => p.id);
-    const propertiesInColorInGame = await PropertyGame.findAll({ where: { gameId: gameId, id: { [Op.in]: propertiesInColor } } });
-
-    return propertiesInColorInGame.some((p) => p.numBuildings > 0);
-}
-
-async function mortgageProperty(property: PropertyGame, player: Player, mortgageMoney: number) {
-    await property.update({ mortgaged: true });
-    await player.update({ money: player.money + mortgageMoney });
+async function unmortgageProperty(property: PropertyGame, player: Player, mortgageMoney: number) {
+    await property.update({ mortgaged: false });
+    await player.update({ money: player.money - mortgageMoney * 1.1, net_worth: player.net_worth - mortgageMoney * 0.1 });
 }
 
 export { command };
