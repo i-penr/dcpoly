@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "test": "bun test",
-    "deploy-slash": "bun run src/deployCommands.ts",
+    "deploy-slash": "bun run scripts/deployCommands.ts",
     "start": "bun run --watch src/index.ts",
     "lint": "eslint",
     "lint:fix": "eslint --fix"
