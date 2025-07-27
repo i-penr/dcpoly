@@ -1,15 +1,13 @@
-import { ColorResolvable, ChatInputCommandInteraction, SlashCommandBuilder, AttachmentBuilder } from "discord.js";
+import { ChatInputCommandInteraction, SlashCommandBuilder, AttachmentBuilder } from "discord.js";
 import Command from '../../models/interfaces/Command';
 import { getProperties } from "../../utils/actions/propertyActions";
 import Property from "../../models/interfaces/Property";
 import { getCurrentGameOrFail, handleCommandError } from "../../utils/validations";
 import { PropertyGame } from "../../db/tables/PropertyGame";
-import { Op } from "sequelize";
 import { getPropertyData, promptOperation } from "../../utils/ownedPropertyOperations";
 import { buildTemplateEmbed } from "../../utils/embeds/buildTemplateEmbed";
 import DiscordResponse from "../../models/classes/DiscordResponse";
 import { Player } from "../../db/tables/Player";
-import { Game } from "../../db/tables/Game";
 
 const properties = getProperties();
 
