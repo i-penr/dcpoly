@@ -2,7 +2,10 @@ import type { WhereOperators } from 'sequelize';
 import { Game } from '../db/tables/Game';
 import { Player } from '../db/tables/Player';
 
-export async function getGameFromGuildWithStatus(guild_id: string, status: string  | WhereOperators) {
+export async function getGameFromGuildWithStatus(
+	guild_id: string,
+	status: string | WhereOperators,
+) {
 	try {
 		return await Game.findOne({
 			where: { guild_id: guild_id, status: status },
