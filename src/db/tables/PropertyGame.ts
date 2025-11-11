@@ -1,11 +1,11 @@
 import {
-	CreationOptional,
+	type CreationOptional,
 	DataTypes,
-	ForeignKey,
-	InferAttributes,
-	InferCreationAttributes,
+	type ForeignKey,
+	type InferAttributes,
+	type InferCreationAttributes,
 	Model,
-	NonAttribute,
+	type NonAttribute,
 } from 'sequelize';
 import { sequelize } from '../db';
 import { Game } from './Game';
