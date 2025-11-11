@@ -16,12 +16,7 @@ const command: Command = {
 			const game = await getGameFromGuildWithStatus(interaction.guildId!, 'new');
 
 			if (!game) {
-				interaction.reply(
-					buildErrorEmbed(
-						interaction,
-						'There are no games with the status `new` on the server. Create a new game with `/newgame`',
-					),
-				);
+				interaction.reply(buildErrorEmbed(interaction, 'There are no games with the status `new` on the server. Create a new game with `/newgame`'));
 				return;
 			}
 
@@ -29,12 +24,7 @@ const command: Command = {
 			const players = game.players ?? [];
 
 			if (players.length < 2) {
-				interaction.reply(
-					buildErrorEmbed(
-						interaction,
-						`There are not enough players in game **#${gameId}** to start!`,
-					),
-				);
+				interaction.reply(buildErrorEmbed(interaction, `There are not enough players in game **#${gameId}** to start!`));
 				return;
 			}
 

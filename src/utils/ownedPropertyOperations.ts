@@ -1,7 +1,6 @@
 import {
 	ButtonStyle,
 	ChatInputCommandInteraction,
-	CommandInteractionOptionResolver,
 } from 'discord.js';
 import { Game } from '../db/tables/Game';
 import { PropertyGame } from '../db/tables/PropertyGame';
@@ -10,11 +9,8 @@ import DiscordResponse, { type ButtonData } from '../models/classes/DiscordRespo
 import { createButtonCollector } from './createButtonCollector';
 import { Player } from '../db/tables/Player';
 
-export async function getPropertyData(game: Game, interaction: ChatInputCommandInteraction) {
-	const selectedPropertyId = await (
-		interaction.options as CommandInteractionOptionResolver
-	).getInteger('property-name');
-	if (!selectedPropertyId) throw new Error('ERROR: No option selected');
+export async function getSelectedPropertyData(game: Game, interaction: ChatInputCommandInteraction) {
+	const selectedPropertyId = interaction.options.getInteger('property-name')!;
 	const selectedProperty = getPropertyFromId(selectedPropertyId);
 	const propertyInGame = await PropertyGame.findOne({
 		where: { gameId: game.id, ownerId: interaction.user.id, id: selectedPropertyId },

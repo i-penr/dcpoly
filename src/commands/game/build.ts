@@ -12,7 +12,7 @@ import { PropertyGame } from '../../db/tables/PropertyGame';
 import { buildTemplateEmbed } from '../../utils/embeds/buildTemplateEmbed';
 import DiscordResponse from '../../models/classes/DiscordResponse';
 import { Player } from '../../db/tables/Player';
-import { getPropertyData, promptOperation } from '../../utils/ownedPropertyOperations';
+import { getSelectedPropertyData, promptOperation } from '../../utils/ownedPropertyOperations';
 import { Game } from '../../db/tables/Game';
 
 const properties = getProperties();
@@ -43,7 +43,7 @@ const command: Command = {
 	async execute(interaction: ChatInputCommandInteraction) {
 		try {
 			const game = await getCurrentGameOrFail(interaction.guildId!);
-			const { propertyInGame, selectedProperty } = await getPropertyData(game, interaction);
+			const { propertyInGame, selectedProperty } = await getSelectedPropertyData(game, interaction);
 
 			await validateOperationConditions(selectedProperty, game, interaction);
 

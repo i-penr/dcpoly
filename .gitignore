@@ -6,3 +6,5 @@ assets/**
 
 # Testing database
 *.sqlite
+
+todo.txt

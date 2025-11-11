@@ -10,7 +10,7 @@ import type Property from '../../models/interfaces/Property';
 import { getCurrentGameOrFail, handleCommandError } from '../../utils/validations';
 import { PropertyGame } from '../../db/tables/PropertyGame';
 import { Op } from 'sequelize';
-import { getPropertyData, promptOperation } from '../../utils/ownedPropertyOperations';
+import { getSelectedPropertyData, promptOperation } from '../../utils/ownedPropertyOperations';
 import { buildTemplateEmbed } from '../../utils/embeds/buildTemplateEmbed';
 import DiscordResponse from '../../models/classes/DiscordResponse';
 import { Player } from '../../db/tables/Player';
@@ -37,7 +37,7 @@ const command: Command = {
 	async execute(interaction: ChatInputCommandInteraction) {
 		try {
 			const game = await getCurrentGameOrFail(interaction.guildId!);
-			const { propertyInGame, selectedProperty } = await getPropertyData(game, interaction);
+			const { propertyInGame, selectedProperty } = await getSelectedPropertyData(game, interaction);
 
 			await validateOperationConditions(propertyInGame, selectedProperty, game);
 
