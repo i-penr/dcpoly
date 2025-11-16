@@ -12,7 +12,7 @@ import { PropertyGame } from '../../db/tables/PropertyGame';
 import { buildTemplateEmbed } from '../../utils/embeds/buildTemplateEmbed';
 import DiscordResponse from '../../models/classes/DiscordResponse';
 import { Player } from '../../db/tables/Player';
-import { getSelectedPropertyData, promptOperation } from '../../utils/ownedPropertyOperations';
+import { canBuildInPropertyInColor, getSelectedPropertyData, promptOperation } from '../../utils/ownedPropertyOperations';
 import { Game } from '../../db/tables/Game';
 
 const properties = getProperties();
@@ -34,33 +34,20 @@ const command: Command = {
 			});
 
 			return option;
-		})
-		.addIntegerOption((option) =>
-			option
-				.setName('num-buildings')
-				.setDescription('The number of buildings you want to build (default == 1)'),
-		),
+		}),
 	async execute(interaction: ChatInputCommandInteraction) {
 		try {
 			const game = await getCurrentGameOrFail(interaction.guildId!);
 			const { propertyInGame, selectedProperty } = await getSelectedPropertyData(game, interaction);
 
-			await validateOperationConditions(selectedProperty, game, interaction);
-
-			const chosenNumBuildings = interaction.options.getInteger('num-buildings') ?? 1;
-			const { actualNumBuildings, finalNumBuildings, totalCost } = calculateOperationDetails(
-				propertyInGame,
-				chosenNumBuildings,
-				selectedProperty,
-			);
+			await validateOperationConditions(selectedProperty, game, interaction, propertyInGame);
 
 			const responseBuilder = buildConfirmationResponse(
 				selectedProperty,
-				actualNumBuildings as ValidBuildingNumber,
-				finalNumBuildings as ValidBuildingNumber,
-				totalCost,
 				interaction,
+				propertyInGame
 			);
+
 			const willBuild = await promptOperation(responseBuilder, interaction);
 
 			if (!willBuild) {
@@ -70,17 +57,12 @@ const command: Command = {
 
 			const player = propertyInGame.owner;
 
-			await buyBuildings(
-				player!,
-				propertyInGame,
-				finalNumBuildings as ValidBuildingNumber,
-				totalCost,
-			);
+			await buyBuildings(player!, propertyInGame, selectedProperty.buildingCost);
 
 			interaction.followUp(`
-                You have built \`${actualNumBuildings}\` houses in \`${selectedProperty.name}\` for \`${totalCost}\`. \
+                You now own ${propertyInGame.numBuildings === 5 ? 'a hotel' : `${propertyInGame.numBuildings} houses`} in \`${selectedProperty.name}\` for \`${selectedProperty.buildingCost}\`. \
                 \n \
-                \nThe rent for \`${selectedProperty.name}\` has risen to \`${selectedProperty.rentProg[finalNumBuildings]}\`.\
+                \nRent for \`${selectedProperty.name}\` has risen to \`${selectedProperty.rentProg[propertyInGame.numBuildings]}\`.\
                 \n \
                 \nYou now have \`${propertyInGame.owner?.money}\`.`);
 		} catch (error: unknown) {
@@ -93,45 +75,44 @@ async function validateOperationConditions(
 	selectedProperty: Property,
 	game: Game,
 	interaction: ChatInputCommandInteraction,
+	propertyInGame: PropertyGame
 ) {
 	if (!(await userOwnsAllColorInGame(selectedProperty.color, game.id, interaction.user.id))) {
 		throw new Error(
 			`You cannot build in color ${selectedProperty.color}. You need to **own all properties in that color** first!`,
 		);
 	}
-}
 
-function calculateOperationDetails(
-	propertyInGame: PropertyGame,
-	chosenNumBuildings: number,
-	selectedProperty: Property,
-) {
-	const alreadyBuilt = propertyInGame.numBuildings;
-	// If user wants to build more than the max, build the max
-	const actualNumBuildings =
-		5 - alreadyBuilt - chosenNumBuildings < 0 ? 5 - alreadyBuilt : chosenNumBuildings;
-	const finalNumBuildings = propertyInGame.numBuildings + actualNumBuildings;
-	const totalCost = finalNumBuildings * selectedProperty.buildingCost;
-	return { actualNumBuildings, finalNumBuildings, totalCost };
+	if (!(await canBuildInPropertyInColor(propertyInGame, selectedProperty.color, game))) {
+		throw new Error(
+			`You cannot build here, you need to build evenly on the other properties inside the same color.`
+		)
+	}
+
+	if (propertyInGame.numBuildings === 5) {
+		throw new Error(
+			`There is already a hotel in ${selectedProperty.name}. You cannot build anything else here.`
+		)
+	}
 }
 
 function buildConfirmationResponse(
 	selectedProperty: Property,
-	actualNumBuildings: ValidBuildingNumber,
-	finalNumBuildings: ValidBuildingNumber,
-	totalCost: number,
 	interaction: ChatInputCommandInteraction,
+	propertyInGame: PropertyGame
 ) {
 	const buildingIcon = new AttachmentBuilder('./assets/build.png');
+	const finalNumBuildings = propertyInGame.numBuildings + 1;
+	const buildsHotel = finalNumBuildings === 5;
 
 	const bulidEmbed = buildTemplateEmbed()
 		.setTitle(`Build operation summary in \`${selectedProperty.name}\``)
 		.setDescription(
 			`
-            You want to build \`${actualNumBuildings}\` house${actualNumBuildings === 1 ? '' : 's'} in \`${selectedProperty.name}\`
-            Your property will have ${finalNumBuildings === 5 ? '1 hotel' : `${finalNumBuildings} house${finalNumBuildings === 1 ? '' : 's'}`}
+            You want to build a house in \`${selectedProperty.name}\`
+            Your property will have ${buildsHotel ? '1 hotel' : `${finalNumBuildings} house${buildsHotel ? '' : 's'}`}
                         
-            You will need to pay \`${totalCost}\`
+            You will need to pay \`${selectedProperty.buildingCost}\`
 
             Do you want to confirm the operation?`,
 		)
@@ -157,7 +138,6 @@ async function userOwnsAllColorInGame(color: ColorResolvable, gameId: number, us
 async function buyBuildings(
 	buyer: Player,
 	propertyGame: PropertyGame,
-	finalNumBuildings: ValidBuildingNumber,
 	cost: number,
 ) {
 	const userMoneyLeft = buyer.money - cost;
@@ -165,7 +145,7 @@ async function buyBuildings(
 	if (userMoneyLeft < 0)
 		throw new Error(`User does not have enough money:\nMoney Left: \`${buyer.money}\``);
 
-	await propertyGame.update({ numBuildings: finalNumBuildings });
+	await propertyGame.update({ numBuildings: propertyGame.numBuildings + 1 as ValidBuildingNumber });
 	await buyer.update({ money: userMoneyLeft, net_worth: buyer.net_worth + cost / 2 });
 }
 

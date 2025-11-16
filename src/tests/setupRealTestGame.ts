@@ -13,7 +13,7 @@ export async function setupTestGame() {
 	await Game.create({ id: 1, guild_id: '338791508214022144', status: 'active' });
 	await User.bulkCreate([{ id: '220525113404030987' }, { id: '540270864143220805' }]);
 	await Player.bulkCreate([
-		{ gameId: 1, userId: '220525113404030987', jailStatus: 2, money: 0 },
+		{ gameId: 1, userId: '220525113404030987', jailStatus: 2, money: 999999 },
 		{ gameId: 1, userId: '540270864143220805' },
 	]);
 	await Turn.bulkCreate([

@@ -1,10 +1,11 @@
 import {
 	ButtonStyle,
 	ChatInputCommandInteraction,
+	type ColorResolvable,
 } from 'discord.js';
 import { Game } from '../db/tables/Game';
 import { PropertyGame } from '../db/tables/PropertyGame';
-import { getPropertyFromId } from './actions/propertyActions';
+import { getProperties, getPropertyFromId } from './actions/propertyActions';
 import DiscordResponse, { type ButtonData } from '../models/classes/DiscordResponse';
 import { createButtonCollector } from './createButtonCollector';
 import { Player } from '../db/tables/Player';
@@ -33,16 +34,27 @@ export function setUpConfirmationButtons(): ButtonData[] {
 	];
 }
 
-export async function promptOperation(
-	responseBuilder: DiscordResponse,
-	interaction: ChatInputCommandInteraction,
-) {
+export async function promptOperation(responseBuilder: DiscordResponse, interaction: ChatInputCommandInteraction,) {
 	responseBuilder.addButtons(...setUpConfirmationButtons());
 	responseBuilder.response = await interaction.reply(responseBuilder.generateResponsePayload());
 	const willBuild = await handleButtonInteractions(responseBuilder, interaction);
 	responseBuilder.response.edit({ components: [] });
 
 	return willBuild;
+}
+
+export async function canBuildInPropertyInColor(property: PropertyGame, color: ColorResolvable, game: Game) {
+	const propertiesInColor = getProperties().filter((p) => (p.color === color && p.id !== property.id)).map((p) => p.id);
+	const numBuildingsInColor = (await PropertyGame.findAll({ where: { id: propertiesInColor, gameId: game.id } })).map((p) => p.numBuildings);
+
+	return numBuildingsInColor.every((numBuilding) => property.numBuildings <= numBuilding);
+}
+
+export async function canSellInPropertyInColor(property: PropertyGame, color: ColorResolvable, game: Game) {
+	const propertiesInColor = getProperties().filter((p) => (p.color === color && p.id !== property.id)).map((p) => p.id);
+	const numBuildingsInColor = (await PropertyGame.findAll({ where: { id: propertiesInColor, gameId: game.id } })).map((p) => p.numBuildings);
+
+	return numBuildingsInColor.every((numBuilding) => property.numBuildings >= numBuilding);
 }
 
 function handleButtonInteractions(

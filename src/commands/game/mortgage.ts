@@ -77,7 +77,7 @@ function buildConfirmationResponse(
                  \n\nYour property will be flagged as \`mortgaged\`, so **no rent will be collected from it** \
                  \n\nTo unmortgage this property, you will need to pay \`${selectedProperty.mortgage * 1.1}\` \
                  \n \
-                 \nDo you want to confirm the operation?`,
+                 \nDo you confirm the operation?`,
 		)
 		.setColor(selectedProperty.color)
 		.setAuthor({ name: interaction.user.displayName, iconURL: interaction.user.avatarURL()! })
@@ -107,7 +107,7 @@ async function validateOperationConditions(
 
 async function buildingsExistInColor(color: ColorResolvable, gameId: number) {
 	const propertiesInColor = getProperties()
-		.filter((p) => (p.color = color))
+		.filter((p) => (p.color === color))
 		.map((p) => p.id);
 	const propertiesInColorInGame = await PropertyGame.findAll({
 		where: { gameId: gameId, id: { [Op.in]: propertiesInColor } },
