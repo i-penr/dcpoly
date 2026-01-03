@@ -39,7 +39,10 @@ const command: Command = {
 					result1,
 					result2,
 				);
-				if (!continuesPlaying) return;
+				if (!continuesPlaying) { 
+					updateTurn(game, playerTurn);
+					return;
+				}
 			}
 
 			const squareNumber = await executePlayerMove(player, playerTurn, result1 + result2);
