@@ -1,10 +1,10 @@
 import {
-	CreationOptional,
+	type CreationOptional,
 	DataTypes,
-	InferAttributes,
-	InferCreationAttributes,
+	type InferAttributes,
+	type InferCreationAttributes,
 	Model,
-	NonAttribute,
+	type NonAttribute,
 } from 'sequelize';
 import { sequelize } from '../db';
 import { Player } from './Player';
@@ -29,7 +29,7 @@ const Game = sequelize.define<Game>(
 			validate: { isIn: [['new', 'active', 'finished']] },
 			defaultValue: 'new',
 		},
-		currentTurn: { type: DataTypes.TINYINT },
+		currentTurn: { type: DataTypes.TINYINT, defaultValue: 0 },
 	},
 	{ timestamps: false },
 );
