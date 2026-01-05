@@ -30,7 +30,6 @@ const command: Command = {
 		}),
 	async execute(interaction: ChatInputCommandInteraction) {
 		try {
-			console.log(interaction.options.getInteger('property-name'));
 			const selectedProperty = getPropertyFromId(
 				(interaction.options as CommandInteractionOptionResolver).getInteger('property-name')!,
 			);
