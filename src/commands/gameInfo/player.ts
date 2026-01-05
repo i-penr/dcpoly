@@ -16,9 +16,9 @@ const command: Command = {
 		try {
 			const game = await getCurrentGameOrFail(interaction.guildId!);
 
-			const players = game.get('players') ?? [];
+			const players = game.players ?? [];
 			const chosenUser: User = interaction.options.getUser('player') ?? interaction.user;
-			const chosenPlayer = players.find((p) => p.get('userId') === chosenUser.id);
+			const chosenPlayer = players.find((p) => p.userId === chosenUser.id);
 
 			if (!chosenPlayer) {
 				interaction.reply({
@@ -47,11 +47,11 @@ function buildInfoEmbed(
 		.setThumbnail(interaction.user.avatarURL())
 		.addFields(
 			{ name: 'Game Ranking', value: getPlayerRanking(players!, player), inline: true },
-			{ name: 'Money', value: `${player.get('money').toLocaleString()}$`, inline: true },
-			{ name: 'Current Square', value: `${player.get('current_square')}` },
+			{ name: 'Money', value: `${player.money.toLocaleString()}$`, inline: true },
+			{ name: 'Current Square', value: `${player.current_square}` },
 			{ name: 'Owned Properties', value: 'TODO', inline: true },
 			{ name: 'Colors Owned', value: 'TODO', inline: true },
-			{ name: '"Get Out of Jail Free" Cards', value: `${player.get('jailFreeCards')}` },
+			{ name: '"Get Out of Jail Free" Cards', value: `${player.jailFreeCards}` },
 		);
 	return infoEmbed;
 }
@@ -62,7 +62,7 @@ function getPlayerRanking(playerList: Player[], player: Player): string {
 	});
 
 	const playerPosition = moneySortedPlayers.findIndex(
-		(p) => p.get('userId') === player.get('userId'),
+		(p) => p.userId === player.userId,
 	);
 
 	return ordinal(playerPosition);
