@@ -7,7 +7,7 @@ import { getCurrentGameOrFail, handleCommandError } from '../../utils/validation
 
 const command: Command = {
 	data: new SlashCommandBuilder()
-		.setName('playerinfo')
+		.setName('player')
 		.setDescription('Shows information about a player in the game.')
 		.addUserOption((option) =>
 			option.setName('player').setDescription('The name of the player you want to see.'),
