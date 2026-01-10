@@ -60,7 +60,10 @@ function circle(context: Canvas.SKRSContext2D, coords: Coordinates) {
 	context.clip();
 }
 
-// Offset is considering the first row (horizontal: x, vertical: y)
+/**
+ * Offset is considering the first row (horizontal: x, vertical: y)
+ * So in the first row, it is the same, in the second row, the y becomes the x and viceversa
+ * */
 function getCoordsFromSquare(square: number, imageSize: number, offset?: Coordinates) {
 	const coords = new Coordinates(
 		STARTING_POSITION - imageSize / 2,
