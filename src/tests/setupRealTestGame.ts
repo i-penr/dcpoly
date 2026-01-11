@@ -23,6 +23,6 @@ export async function setupTestGame() {
 	const properties = getProperties();
 
 	properties.forEach(({ id }: { id: number }) => {
-		PropertyGame.create({ id: id, gameId: 1, ownerId: '220525113404030987', numBuildings: 1 });
+		PropertyGame.create({ id: id, gameId: 1, ownerId: '220525113404030987', numBuildings: 5 });
 	});
 }

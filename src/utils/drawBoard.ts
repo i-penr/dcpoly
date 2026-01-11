@@ -43,12 +43,17 @@ async function drawBuildings(gameId: number, context: Canvas.SKRSContext2D) {
 	const properties = await PropertyGame.findAll({ where: { gameId: gameId } });
 
 	properties.forEach(async (property) => {
+		const actualNumBuldings = property.numBuildings === 5 ? 1 : property.numBuildings;
 		const houseOrHotel = property.numBuildings === 5 ? 'hotel' : 'house';
 		const buildingIcon = await Canvas.loadImage(path.join(__dirname, '..', '..', 'assets', `${houseOrHotel}-icon.png`));
-		const coords = getCoordsFromSquare(property.id, buildingIcon.height, new Coordinates(0, 75));
 
-		context.drawImage(buildingIcon, coords.x, coords.y, buildingIcon.width, buildingIcon.height);
-	})
+		for (let i = 0; i < actualNumBuldings; i++) {
+			// Kind of magic formula... Basically, it centers the whole building row.
+			const xPosition = -(actualNumBuldings-1)*10 + i*22 - 2;
+			const coords = getCoordsFromSquare(property.id, buildingIcon.height, new Coordinates(xPosition, 75));
+			context.drawImage(buildingIcon, coords.x, coords.y, buildingIcon.width, buildingIcon.height);	
+		}
+	});
 }
 
 function circle(context: Canvas.SKRSContext2D, coords: Coordinates) {
@@ -63,6 +68,11 @@ function circle(context: Canvas.SKRSContext2D, coords: Coordinates) {
 /**
  * Offset is considering the first row (horizontal: x, vertical: y)
  * So in the first row, it is the same, in the second row, the y becomes the x and viceversa
+ * 
+ * The "base position" is STARTING_POSITION, which is the position of the token in the first square.
+ * 
+ * This is good for positioning multiple images in the same square, or adding the offsest in
+ * buildings.
  * */
 function getCoordsFromSquare(square: number, imageSize: number, offset?: Coordinates) {
 	const coords = new Coordinates(
@@ -74,16 +84,16 @@ function getCoordsFromSquare(square: number, imageSize: number, offset?: Coordin
 
 	if (square < 10) {
 		coords.y = BOARD_SIZE - 100 - offset.y;
-		coords.x -= SQUARE_WIDTH * square;
+		coords.x -= SQUARE_WIDTH * square - offset.x;
 	} else if (square < 20) {
 		coords.x = 100 + offset.y - imageSize;
-		coords.y -= SQUARE_WIDTH * (square % 10);
+		coords.y -= SQUARE_WIDTH * (square % 10) - offset.x;
 	} else if (square < 30) {
 		coords.y = 100 + offset.y - imageSize;
-		coords.x -= SQUARE_WIDTH * (10 - (square % 10));
+		coords.x -= SQUARE_WIDTH * (10 - (square % 10)) - offset.x;
 	} else {
 		coords.x = BOARD_SIZE - 100 - offset.y;
-		coords.y -= SQUARE_WIDTH * (10 - (square % 10));
+		coords.y -= SQUARE_WIDTH * (10 - (square % 10)) - offset.x;
 	}
 
 	return coords;
