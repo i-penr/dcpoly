@@ -20,12 +20,12 @@ export async function drawBoard(players: Player[]) {
 
 	await drawBuildings(players[0]!.gameId, context);
 
-	for (let i = 0; i < 40; i++) {
-		const dcUser = await Client.getInstance().users.fetch('220525113404030987');
+	for (const player of players) {
+		const dcUser = await Client.getInstance().users.fetch(player.userId);
 		const avatarUrl = dcUser.displayAvatarURL({ extension: 'png' });
 
 		const avatar = await Canvas.loadImage(avatarUrl);
-		await drawToken(context, avatar, i);
+		await drawToken(context, avatar, player.current_square);
 	}
 
 	return new AttachmentBuilder(await canvas.encode('png'), { name: 'board.png' });
