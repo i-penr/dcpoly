@@ -19,20 +19,35 @@ export async function drawBoard(players: Player[]) {
 	context.drawImage(background, 0, 0, canvas.width, canvas.height);
 
 	await drawBuildings(players[0]!.gameId, context);
-
-	for (const player of players) {
-		const dcUser = await Client.getInstance().users.fetch(player.userId);
-		const avatarUrl = dcUser.displayAvatarURL({ extension: 'png' });
-
-		const avatar = await Canvas.loadImage(avatarUrl);
-		await drawToken(context, avatar, player.current_square);
-	}
+	await drawPlayerTokens(players, context);
 
 	return new AttachmentBuilder(await canvas.encode('png'), { name: 'board.png' });
 }
 
-async function drawToken(context: Canvas.SKRSContext2D, avatar: Canvas.Image, square: number) {
-	const coords = getCoordsFromSquare(square, TOKEN_SIZE);
+async function drawPlayerTokens(players: Player[], context: Canvas.SKRSContext2D) {
+	const grouped: Record<number, string[]> = {};
+
+	players.forEach(player => {
+		if (!grouped[player.current_square]) {
+			grouped[player.current_square] = [];
+		} else {
+			grouped[player.current_square]!.push(player.userId);
+		}
+	});
+
+	for (const [square, playerIds] of Object.entries(grouped)) {
+		for (const playerId of playerIds) {
+			const dcUser = await Client.getInstance().users.fetch(playerId);
+			const avatarUrl = dcUser.displayAvatarURL({ extension: 'png' });
+			const avatar = await Canvas.loadImage(avatarUrl);
+			const coords = getCoordsFromSquare(parseInt(square), TOKEN_SIZE);
+
+			await circleToken(context, avatar, coords);
+		}
+	}
+}
+
+async function circleToken(context: Canvas.SKRSContext2D, avatar: Canvas.Image, coords: Coordinates) {
 	context.save();
 	circle(context, coords);
 	context.drawImage(avatar, coords.x, coords.y, TOKEN_SIZE, TOKEN_SIZE);
@@ -49,16 +64,16 @@ async function drawBuildings(gameId: number, context: Canvas.SKRSContext2D) {
 
 		for (let i = 0; i < actualNumBuldings; i++) {
 			// Kind of magic formula... Basically, it centers the whole building row.
-			const xPosition = -(actualNumBuldings-1)*10 + i*22 - 2;
+			const xPosition = -(actualNumBuldings - 1) * 10 + i * 22 - 2;
 			const coords = getCoordsFromSquare(property.id, buildingIcon.height, new Coordinates(xPosition, 75));
-			context.drawImage(buildingIcon, coords.x, coords.y, buildingIcon.width, buildingIcon.height);	
+			context.drawImage(buildingIcon, coords.x, coords.y, buildingIcon.width, buildingIcon.height);
 		}
 	});
 }
 
 function circle(context: Canvas.SKRSContext2D, coords: Coordinates) {
-	context.strokeStyle = 'green';
-	context.lineWidth = 3;
+	context.strokeStyle = 'purple';
+	context.lineWidth = 5;
 	context.beginPath();
 	context.arc(coords.x + TOKEN_SIZE / 2, coords.y + TOKEN_SIZE / 2, TOKEN_SIZE / 2, 0, Math.PI * 2);
 	context.stroke();
