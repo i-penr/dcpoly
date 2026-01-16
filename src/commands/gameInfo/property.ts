@@ -9,6 +9,7 @@ import { buildPropertyEmbed } from '../../utils/embeds/buildPropertyEmbed';
 import { getProperties, getPropertyFromId } from '../../utils/actions/propertyActions';
 import type Property from '../../models/interfaces/Property';
 import { getGameFromGuildWithStatus } from '../../utils/database';
+import { drawCroppedBoardBySquare } from '../../utils/drawBoard';
 
 const properties = getProperties();
 
@@ -35,8 +36,14 @@ const command: Command = {
 			);
 			const game = await getGameFromGuildWithStatus(interaction.guildId!, 'active');
 			const propertyEmbed = await buildPropertyEmbed(selectedProperty, game ?? undefined);
+			let boardImg;
 
-			interaction.reply({ embeds: [propertyEmbed] });
+			if (game) {
+				boardImg = await drawCroppedBoardBySquare(selectedProperty.id, game.players!);
+				propertyEmbed.setImage('attachment://square.png')
+			}
+
+			interaction.reply({ embeds: [propertyEmbed], files: boardImg ? [boardImg] : [] });
 		} catch (error: unknown) {
 			handleCommandError(interaction, error as Error);
 		}

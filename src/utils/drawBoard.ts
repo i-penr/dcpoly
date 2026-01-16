@@ -24,6 +24,37 @@ export async function drawBoard(players: Player[]) {
 	return new AttachmentBuilder(await canvas.encode('png'), { name: 'board.png' });
 }
 
+export async function drawCroppedBoardBySquare(
+  square: number,
+  players: Player[]
+): Promise<AttachmentBuilder> {
+  const boardAttachment = await drawBoard(players);
+  const boardBuffer = boardAttachment.attachment as Buffer;
+
+  const CROPPED_SIZE = 250;
+  const croppedCanvas = Canvas.createCanvas(CROPPED_SIZE, CROPPED_SIZE);
+  const croppedCtx = croppedCanvas.getContext('2d');
+
+  const boardImg = await Canvas.loadImage(boardBuffer);
+
+  const { x, y } = getCoordsFromSquare(square, TOKEN_SIZE);
+
+  croppedCtx.drawImage(
+    boardImg,
+    x - CROPPED_SIZE / 2 + 20,
+    y - CROPPED_SIZE / 2 + 20,
+    CROPPED_SIZE,
+    CROPPED_SIZE,
+    0,
+    0,
+    CROPPED_SIZE,
+    CROPPED_SIZE
+  );
+
+  const croppedPng = await croppedCanvas.encode('png');
+  return new AttachmentBuilder(croppedPng, { name: 'square.png' });
+}
+
 async function drawPlayerTokens(players: Player[], context: Canvas.SKRSContext2D) {
 	const grouped: Record<number, string[]> = {};
 
