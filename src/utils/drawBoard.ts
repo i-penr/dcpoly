@@ -30,20 +30,20 @@ async function drawPlayerTokens(players: Player[], context: Canvas.SKRSContext2D
 	players.forEach(player => {
 		if (!grouped[player.current_square]) {
 			grouped[player.current_square] = [];
-		} else {
-			grouped[player.current_square]!.push(player.userId);
-		}
+		} 
+		grouped[player.current_square]!.push(player.userId);
 	});
 
 	for (const [square, playerIds] of Object.entries(grouped)) {
-		for (const playerId of playerIds) {
-			const dcUser = await Client.getInstance().users.fetch(playerId);
+		for (let i = 0; i < playerIds.length; i++) {
+			const dcUser = await Client.getInstance().users.fetch(playerIds[i]!);
 			const avatarUrl = dcUser.displayAvatarURL({ extension: 'png' });
 			const avatar = await Canvas.loadImage(avatarUrl);
-			const coords = getCoordsFromSquare(parseInt(square), TOKEN_SIZE);
+			const offset = new Coordinates(i % 2 * 11, (playerIds.length / 2) + 11*i - 11*playerIds.length/2);
+			const coords = getCoordsFromSquare(parseInt(square), TOKEN_SIZE, offset);
 
 			await circleToken(context, avatar, coords);
-		}
+		};
 	}
 }
 
