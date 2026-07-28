@@ -1,9 +1,14 @@
-import { ChatInputCommandInteraction } from 'discord.js';
+import { ChatInputCommandInteraction, type ColorResolvable } from 'discord.js';
 import { Game } from '../db/tables/Game';
 import { Player } from '../db/tables/Player';
 import { Turn } from '../db/tables/Turn';
 import { buildErrorEmbed } from './embeds/buildErrorEmbedResponse';
 import { getGameFromGuildWithStatus } from './database';
+import { PropertyGame } from '../db/tables/PropertyGame';
+import type Property from '../models/interfaces/Property';
+import { getProperties } from './actions/propertyActions';
+
+const properties = getProperties();
 
 export async function getCurrentGameOrFail(guildId: string): Promise<Game> {
 	const game = await getGameFromGuildWithStatus(guildId, 'active');
@@ -59,4 +64,15 @@ export async function getAndVerifyAll(interaction: ChatInputCommandInteraction) 
 
 	await validateTurn(game, playerTurn);
 	return { player, playerTurn, game };
+}
+
+export async function userOwnsAllColorInGame(color: ColorResolvable, gameId: number, userId: string) {
+  const sameColorPropertiesIds = properties
+    .filter((prop: Property) => prop.color === color)
+    .map((prop: Property) => prop.id);
+  const sameColorPropertiesInGame = await PropertyGame.findAll({
+    where: { gameId: gameId, id: sameColorPropertiesIds },
+  });
+
+  return sameColorPropertiesInGame.every(({ ownerId }) => ownerId === userId);
 }

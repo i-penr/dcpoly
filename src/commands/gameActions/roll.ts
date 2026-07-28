@@ -22,6 +22,7 @@ import { getSquareById } from '../../utils/actions/squareActions';
 import type Square from '../../models/interfaces/Square';
 import { propertyTurn } from '../../utils/turns/propertyTurn';
 import { createButtonCollector } from '../../utils/createButtonCollector';
+// import { stationTurn } from '../../utils/turns/stationTurn';
 
 const command: Command = {
 	data: new SlashCommandBuilder().setName('roll').setDescription('Rolls the dice!'),
@@ -148,7 +149,11 @@ async function handleSquareAction(
 			break;
 		}
 		case 'property':
-			await propertyTurn(square, game, responseBuilder, player);
+			await propertyTurn(square.id, game, responseBuilder, player);
+			break;
+		case 'station':
+			await stationTurn(square.id, game, responseBuilder, player);
+			break;
 	}
 
 	return responseBuilder;

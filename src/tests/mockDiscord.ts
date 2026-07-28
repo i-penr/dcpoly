@@ -5,8 +5,6 @@ import {
 	Guild,
 	User,
 	CommandInteractionOptionResolver,
-	MessagePayload,
-	type InteractionReplyOptions,
 } from 'discord.js';
 import type Command from '../models/interfaces/Command';
 import path from 'path';
@@ -138,12 +136,16 @@ export async function mockInteractionAndSpyReply(
 	const interaction = discord.getInteraction() as ChatInputCommandInteraction;
 	await discord.init();
 
-	const spy = spyOn(interaction, 'reply') as unknown as (
-		message: string | MessagePayload | InteractionReplyOptions,
-	) => Promise<void>;
+	const spyReply = spyOn(interaction, 'reply');
 
+	const spyFollowUp = jest.fn(async () => {
+		// Simulate the success of followUp without checking internal state
+		return Promise.resolve();
+	});
+
+	(interaction as any).followUp = spyFollowUp;
 	const commands = discord.getCommands();
 	await commands.get(command)?.execute(interaction);
 
-	return spy;
+	return { spyReply, spyFollowUp };
 }

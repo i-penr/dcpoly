@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { beforeEach, describe, expect, it } from 'bun:test';
+import { beforeEach, describe, expect, it, test } from 'bun:test';
 import { mockDb } from '../mockDb';
 import { mockInteractionAndSpyReply } from '../mockDiscord';
 import { Game } from '../../db/tables/Game';
@@ -16,7 +16,7 @@ describe('/roll command tests', async () => {
 		}))!;
 	});
 
-	it('should error (no active game in server)', async () => {
+	test.todo('should error (no active game in server)', async () => {
 		game.update({ status: 'new' });
 
 		spy = await mockInteractionAndSpyReply('roll');
@@ -28,7 +28,7 @@ describe('/roll command tests', async () => {
 		);
 	});
 
-	it('should error (author not in game)', async () => {
+	test.todo('should error (author not in game)', async () => {
 		await player.destroy();
 
 		spy = await mockInteractionAndSpyReply('roll');

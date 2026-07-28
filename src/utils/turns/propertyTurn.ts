@@ -3,18 +3,17 @@ import { Player } from '../../db/tables/Player';
 import { PropertyGame } from '../../db/tables/PropertyGame';
 import type Property from '../../models/interfaces/Property';
 import { getPropertyFromId, createPropertyPromptActionRow } from '../actions/propertyActions';
-import type Square from '../../models/interfaces/Square';
 import { Game } from '../../db/tables/Game';
 import DiscordResponse from '../../models/classes/DiscordResponse';
 import { Turn } from '../../db/tables/Turn';
 
 export async function propertyTurn(
-	square: Square,
+	square: number,
 	game: Game,
 	responseBuilder: DiscordResponse,
 	player: Player,
 ) {
-	const property: Property = getPropertyFromId(square.id);
+	const property: Property = getPropertyFromId(square);
 	const propertyGame = await PropertyGame.findOne({
 		where: { gameId: game.id, id: property.id },
 		include: { model: Player, as: 'owner' },

@@ -1,13 +1,19 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { mockDb } from '../mockDb';
 import { mockInteractionAndSpyReply } from '../mockDiscord';
 import { Game } from '../../db/tables/Game';
 import { Player } from '../../db/tables/Player';
 import { User } from '../../db/tables/User';
+import type { Sequelize } from 'sequelize';
+import type { Message } from 'discord.js';
 
 describe('/property command tests', async () => {
-	let spy: any, sequelize: any;
+  let sequelize: Sequelize;
+
+  beforeEach(async () => {
+    sequelize = await mockDb();
+  });
+
 
 	beforeEach(async () => {
 		sequelize = await mockDb();
@@ -16,25 +22,27 @@ describe('/property command tests', async () => {
 
 	it('should error (game active)', async () => {
 		(await Game.findByPk(process.env.GAME_ID))?.update({ status: 'active' });
-		spy = await mockInteractionAndSpyReply('register');
-		const reply = spy.mock.calls[0][0];
+		
+    const { spyReply } = await mockInteractionAndSpyReply('register');
+    const reply = spyReply.mock.calls[0]![0] as Message;
 
-		expect(reply.embeds[0].data.description).toBe("There aren't any games waiting on this server.");
+		expect(reply.embeds[0]!.data.description).toBe("There aren't any games waiting on this server.");
 	});
 
 	it('should error (no new games waiting)', async () => {
 		await sequelize.truncate();
-		spy = await mockInteractionAndSpyReply('register');
-		const reply = spy.mock.calls[0][0];
 
-		expect(reply.embeds[0].data.description).toBe("There aren't any games waiting on this server.");
+    const { spyReply } = await mockInteractionAndSpyReply('register');
+    const reply = spyReply.mock.calls[0]![0] as Message;
+
+		expect(reply.embeds[0]!.data.description).toBe("There aren't any games waiting on this server.");
 	});
 
 	it('should error (player already in game)', async () => {
-		spy = await mockInteractionAndSpyReply('register');
-		const reply = spy.mock.calls[0][0];
+    const { spyReply } = await mockInteractionAndSpyReply('register');
+    const reply = spyReply.mock.calls[0]![0] as Message;
 
-		expect(reply.embeds[0].data.description).toBe(
+		expect(reply.embeds[0]!.data.description).toBe(
 			'You are already registered in the current game.',
 		);
 	});
@@ -60,18 +68,19 @@ describe('/property command tests', async () => {
 			{ gameId: parseInt(process.env.GAME_ID!), userId: '11111111111111111118' },
 		]);
 
-		spy = await mockInteractionAndSpyReply('register');
-		const reply = spy.mock.calls[0][0];
+    const { spyReply } = await mockInteractionAndSpyReply('register');
+    const reply = spyReply.mock.calls[0]![0] as Message;
 
-		expect(reply.embeds[0].data.description).toBe(
+		expect(reply.embeds[0]!.data.description).toBe(
 			'The game has reached its maximum amount of players (8). Run `/startgame` to start.',
 		);
 	});
 
 	it('should add the existing player to the game', async () => {
 		await Player.destroy({ where: { userId: process.env.AUTHOR_ID, gameId: process.env.GAME_ID } });
-		spy = await mockInteractionAndSpyReply('register');
-		const reply = spy.mock.calls[0][0];
+  
+    const { spyReply } = await mockInteractionAndSpyReply('register');
+    const reply = spyReply.mock.calls[0]![0] as Message;
 
 		expect(reply).toMatch(/User .* added successfully to the game./);
 		expect(
@@ -85,8 +94,8 @@ describe('/property command tests', async () => {
 		await Player.destroy({ where: { userId: process.env.AUTHOR_ID, gameId: process.env.GAME_ID } });
 		await User.destroy({ where: { id: process.env.AUTHOR_ID } });
 
-		spy = await mockInteractionAndSpyReply('register');
-		const reply = spy.mock.calls[0][0];
+    const { spyReply } = await mockInteractionAndSpyReply('register');
+    const reply = spyReply.mock.calls[0]![0] as Message;
 
 		expect(reply).toMatch(/User .* added successfully to the game./);
 		expect(
