@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { mockDb } from '../mockDb';
 import { mockInteractionAndSpyReply } from '../mockDiscord';
