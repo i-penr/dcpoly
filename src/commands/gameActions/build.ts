@@ -1,17 +1,14 @@
 import {
   SlashCommandBuilder,
-  ChatInputCommandInteraction,
-  AttachmentBuilder,
+  ChatInputCommandInteraction
 } from 'discord.js';
 import type Command from '../../models/interfaces/Command';
-import { getProperties } from '../../utils/actions/propertyActions';
+import { getProperties, getPropertyFromId } from '../../utils/actions/propertyActions';
 import type Property from '../../models/interfaces/Property';
 import { getCurrentGameOrFail, handleCommandError, userOwnsAllColorInGame } from '../../utils/validations';
 import { PropertyGame } from '../../db/tables/PropertyGame';
-import { buildTemplateEmbed } from '../../utils/embeds/buildTemplateEmbed';
-import DiscordResponse from '../../models/classes/DiscordResponse';
 import { Player } from '../../db/tables/Player';
-import { canBuildInPropertyInColor, getSelectedPropertyData, promptOperation } from '../../utils/ownedPropertyOperations';
+import { buildConfirmationResponse, canBuildInPropertyInColor, getPropertyInGameIfPlayerOwnsIt, promptOperation } from '../../utils/ownedPropertyOperations';
 import { Game } from '../../db/tables/Game';
 
 const properties = getProperties();
@@ -37,14 +34,21 @@ const command: Command = {
   async execute(interaction: ChatInputCommandInteraction) {
     try {
       const game = await getCurrentGameOrFail(interaction.guildId!);
-      const { propertyInGame, selectedProperty } = await getSelectedPropertyData(game, interaction);
+      const selectedPropertyId = interaction.options.getInteger('property-name')!;
+      const selectedProperty = getPropertyFromId(selectedPropertyId);
+      const propertyInGame = await getPropertyInGameIfPlayerOwnsIt(game, selectedProperty, interaction.user.id);
+      const finalNumBuildings = propertyInGame.numBuildings + 1;
+      const buildsHotel = finalNumBuildings === 5;
 
       await validateOperationConditions(selectedProperty, game, interaction, propertyInGame);
 
       const responseBuilder = buildConfirmationResponse(
-        selectedProperty,
-        interaction,
-        propertyInGame
+        selectedProperty, interaction, 'build',
+        `You want to build a house in \`${selectedProperty.name}\`
+        \nYour property will have ${buildsHotel ? '1 hotel' : `${finalNumBuildings} house${buildsHotel ? '' : 's'}`}
+        \n \
+        \nYou will need to pay \`${selectedProperty.buildingCost}\
+        \nDo you want to confirm the operation?`
       );
 
       const willBuild = await promptOperation(responseBuilder, interaction);
@@ -94,34 +98,6 @@ async function validateOperationConditions(
       `There is already a hotel in ${selectedProperty.name}. You cannot build anything else here.`
     )
   }
-}
-
-function buildConfirmationResponse(
-  selectedProperty: Property,
-  interaction: ChatInputCommandInteraction,
-  propertyInGame: PropertyGame
-) {
-  const buildingIcon = new AttachmentBuilder('./assets/build.png');
-  const finalNumBuildings = propertyInGame.numBuildings + 1;
-  const buildsHotel = finalNumBuildings === 5;
-
-  const bulidEmbed = buildTemplateEmbed()
-    .setTitle(`Build operation summary in \`${selectedProperty.name}\``)
-    .setDescription(
-      `
-            You want to build a house in \`${selectedProperty.name}\`
-            Your property will have ${buildsHotel ? '1 hotel' : `${finalNumBuildings} house${buildsHotel ? '' : 's'}`}
-                        
-            You will need to pay \`${selectedProperty.buildingCost}\`
-
-            Do you want to confirm the operation?`,
-    )
-    .setColor(selectedProperty.color)
-    .setAuthor({ name: interaction.user.displayName, iconURL: interaction.user.avatarURL()! })
-    .setThumbnail('attachment://build.png');
-
-  const responseBuilder = new DiscordResponse([bulidEmbed], [buildingIcon]);
-  return responseBuilder;
 }
 
 async function buyBuildings(

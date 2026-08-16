@@ -2,17 +2,14 @@ import {
   type ColorResolvable,
   ChatInputCommandInteraction,
   SlashCommandBuilder,
-  AttachmentBuilder,
 } from 'discord.js';
 import type Command from '../../models/interfaces/Command';
-import { getProperties } from '../../utils/actions/propertyActions';
+import { getProperties, getPropertyFromId } from '../../utils/actions/propertyActions';
 import type Property from '../../models/interfaces/Property';
 import { getCurrentGameOrFail, handleCommandError } from '../../utils/validations';
 import { PropertyGame } from '../../db/tables/PropertyGame';
 import { Op } from 'sequelize';
-import { getSelectedPropertyData, promptOperation } from '../../utils/ownedPropertyOperations';
-import { buildTemplateEmbed } from '../../utils/embeds/buildTemplateEmbed';
-import DiscordResponse from '../../models/classes/DiscordResponse';
+import { buildConfirmationResponse, getPropertyInGameIfPlayerOwnsIt, promptOperation } from '../../utils/ownedPropertyOperations';
 import { Player } from '../../db/tables/Player';
 import { Game } from '../../db/tables/Game';
 
@@ -37,11 +34,21 @@ const command: Command = {
   async execute(interaction: ChatInputCommandInteraction) {
     try {
       const game = await getCurrentGameOrFail(interaction.guildId!);
-      const { propertyInGame, selectedProperty } = await getSelectedPropertyData(game, interaction);
+      const selectedPropertyId = interaction.options.getInteger('property-name')!;
+      const selectedProperty = getPropertyFromId(selectedPropertyId);
+      const propertyInGame = await getPropertyInGameIfPlayerOwnsIt(game, selectedProperty, interaction.user.id);
 
       await validateOperationConditions(propertyInGame, selectedProperty, game);
 
-      const responseBuilder = buildConfirmationResponse(selectedProperty, interaction);
+      const responseBuilder = buildConfirmationResponse(
+        selectedProperty, interaction, 'mortgage', 
+        `You are going to **mortgage** property \`${selectedProperty.name}\`. It will give you \`${selectedProperty.mortgage}\` \
+        \n\nYour property will be flagged as \`mortgaged\`, so **no rent will be collected from it** \
+        \n\nTo unmortgage this property, you will need to pay \`${selectedProperty.mortgage * 1.1}\` \
+        \n \
+        \nDo you confirm the operation?`
+      );
+
       const willBuild = await promptOperation(responseBuilder, interaction);
 
       if (!willBuild) {
@@ -64,28 +71,6 @@ const command: Command = {
     }
   },
 };
-
-function buildConfirmationResponse(
-  selectedProperty: Property,
-  interaction: ChatInputCommandInteraction,
-) {
-  const mortgageIcon = new AttachmentBuilder('./assets/mortgage.png');
-  const mortgageEmbed = buildTemplateEmbed()
-    .setTitle(`Mortgage operation summary in \`${selectedProperty.name}\``)
-    .setDescription(
-      `You are going to **mortgage** property \`${selectedProperty.name}\`. It will give you \`${selectedProperty.mortgage}\` \
-      \n\nYour property will be flagged as \`mortgaged\`, so **no rent will be collected from it** \
-      \n\nTo unmortgage this property, you will need to pay \`${selectedProperty.mortgage * 1.1}\` \
-      \n \
-      \nDo you confirm the operation?`,
-    )
-    .setColor(selectedProperty.color)
-    .setAuthor({ name: interaction.user.displayName, iconURL: interaction.user.avatarURL()! })
-    .setThumbnail('attachment://mortgage.png');
-
-  const responseBuilder = new DiscordResponse([mortgageEmbed], [mortgageIcon]);
-  return responseBuilder;
-}
 
 async function validateOperationConditions(
   propertyInGame: PropertyGame,
